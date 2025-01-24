@@ -1,35 +1,161 @@
 body {
     font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    line-height: 1.6;
     margin: 0;
-    background-color: #f0f0f0;
+    padding: 0;
+    background-color: #f4f4f4;
 }
 
 .container {
-    background-color: white;
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    color: #333;
+}
+
+input[type="text"], input[type="password"] {
+    font-size: 15px;
+    width: 70%;
+    padding: 10px;
+    margin-bottom: 10px;
 }
 
 button {
-    padding: 10px 20px;
-    font-size: 16px;
+    padding: 10px 15px;
+    background: #333;
+    color: #fff;
+    border: none;
     cursor: pointer;
 }
 
-#status, #currentSession {
-    margin: 10px 0;
+button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
 }
 
-ul {
-    list-style-type: none;
-    padding: 0;
+#currentSession, #sessionList {
+    background: #fff;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 5px;
 }
 
-li {
-    margin-bottom: 5px;
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #b9b9b9;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.delete-btn {
+    background: #ff0000;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: #cc0000;
+}
+
+#timer {
+    display: inline-block;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+#currentTopic {
+    display: inline-block;
+    font-size: 20px;
+    color: #666;
+    padding-right: 20px;
+}
+
+#clockInOut {
+    margin-bottom: 20px;
+}
+
+#clockInBtn, #clockOutBtn {
+    margin-right: 10px;
+    font-size: 15px;
+}
+
+#sessionsTable {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+#sessionsTable thead {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#sessionsTable th {
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+#sessionsTable td {
+    position: relative;
+}
+
+#sessionsTable tr:hover {
+    background-color: #f5f5f5;
+    transition: all 0.3s ease;
+}
+
+.edit-btn, .save-btn, .cancel-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.edit-btn:hover, .save-btn:hover {
+    background: #45a049;
+}
+
+.cancel-btn {
+    background: #f44336;
+}
+
+.cancel-btn:hover {
+    background: #da190b;
+}
+
+.edit-input {
+    width: 90%;
+    padding: 5px;
+    border: 1px solid #ddd;
+}
+
+#passwordPrompt {
+    text-align: center;
+    margin-top: 50px;
+}
+
+#passwordInput {
+    width: 200px;
+    margin-right: 10px;
 }

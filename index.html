@@ -3,18 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learning Time Tracker</title>
+    <title>Learning Tracker</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Learning Time Tracker</h1>
-        <div id="status">Not clocked in</div>
-        <input type="text" id="topicInput" placeholder="Enter topic">
-        <button id="clockBtn">Clock In</button>
-        <div id="currentSession"></div>
-        <h2>Session History</h2>
-        <ul id="sessionList"></ul>
+    <div id="passwordPrompt" class="container">
+        <h1>Learning Tracker</h1>
+        <input type="password" id="passwordInput" placeholder="Enter password">
+        <button id="submitPassword">Submit</button>
+    </div>
+
+    <div id="mainContent" class="container" style="display: none;">
+        <h1>Learning Tracker</h1>
+        <button id="logoutBtn">Logout</button>
+
+        <div id="clockInOut">
+            <input type="text" id="topic" placeholder="Enter topic">
+            <button id="clockInBtn">Clock In</button>
+            <button id="clockOutBtn" disabled>Clock Out</button>
+        </div>
+        <div id="currentSession">
+            <h2>Current Session</h2>
+            <span id="currentTopic"></span>
+            <span id="timer">00:00:00</span>
+        </div>
+        <div id="sessionList">
+            <h2>Previous Sessions</h2>
+            <table id="sessionsTable">
+                <thead>
+                    <tr>
+                        <th>Topic</th>
+                        <th>Started</th>
+                        <th>Ended</th>
+                        <th>Total Time</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="sessions"></tbody>
+            </table>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
