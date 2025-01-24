@@ -45,9 +45,8 @@ function calculateTotalTime(started, ended) {
 }
 
 function startTimer(startedTime) {
-    let elapsed = Math.floor((Date.now() - startedTime) / 1000);
     interval = setInterval(() => {
-        elapsed++;
+        elapsed = Math.floor((Date.now() - startedTime) / 1000);
         const hours = Math.floor(elapsed / 3600);
         const minutes = Math.floor((elapsed % 3600) / 60);
         const seconds = elapsed % 60;
@@ -71,17 +70,31 @@ function loadFromLocalStorage() {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     if (isLoggedIn) {
         userId = localStorage.getItem("userId");
-        currentSession = JSON.parse(localStorage.getItem("currentSession")) || {};
+        currentSession = JSON.parse(localStorage.getItem("currentSession")) || [];
         sessions = JSON.parse(localStorage.getItem("sessions")) || [];
-        if (currentSession.started) {
-            clockInBtn.disabled = true;
-            clockOutBtn.disabled = false;
-            currentTopic.textContent = currentSession.topic;
-            startTimer(currentSession.started);
-        }
-        loadSessions(sessions);
-        passwordPrompt.style.display = "none";
-        mainContent.style.display = "block";
+
+        // Fetch sessions from DynamoDB
+        const params = {
+            TableName: "LearningTracker",
+            Key: { userId }
+        };
+
+        docClient.get(params, (err, data) => {
+            if (err) {
+                console.error("Error fetching sessions from DynamoDB:", err);
+            } else {
+                sessions = data.Item.sessions || [];
+                if (currentSession.started) {
+                    clockInBtn.disabled = true;
+                    clockOutBtn.disabled = false;
+                    currentTopic.textContent = currentSession.topic;
+                    startTimer(currentSession.started);
+                }
+                loadSessions(sessions);
+                passwordPrompt.style.display = "none";
+                mainContent.style.display = "block";
+            }
+        });
     }
 }
 
@@ -281,7 +294,19 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 // Start Session
 clockInBtn.addEventListener("click", () => {
     const topic = topicInput.value.trim();
-    if (!topic) return alert("Please enter a topic!");
+    const specialCharPattern = /[^a-zA-Z0-9 ]/g;
+
+    if (!topic) {
+        return alert("Please enter a topic!");
+    }
+
+    if (specialCharPattern.test(topic)) {
+        return alert("Topic contains special characters. Please use only letters and numbers.");
+    }
+
+    if (topic.length > 50) {
+        return alert("Topic is too long. Please use a topic with less than 50 characters.");
+    }
 
     currentSession = {
         topic,
@@ -309,19 +334,19 @@ clockOutBtn.addEventListener("click", async () => {
     stopTimer();
 
     sessions.push(currentSession);
-    currentSession = {}; // Reset current session
-    saveToLocalStorage(); // Save updated state to localStorage
-
-    const params = {
-        TableName: "LearningTracker",
-        Key: { userId },
-        UpdateExpression: "SET sessions = :updatedSessions",
-        ExpressionAttributeValues: {
-            ":updatedSessions": sessions
-        }
-    };
-
     try {
+        currentSession = {}; // Reset current session
+        saveToLocalStorage(); // Save updated state to localStorage
+
+        const params = {
+            TableName: "LearningTracker",
+            Key: { userId },
+            UpdateExpression: "SET sessions = :updatedSessions",
+            ExpressionAttributeValues: {
+                ":updatedSessions": sessions
+            }
+        };
+
         await docClient.update(params).promise();
         loadSessions(sessions);
         currentTopic.textContent = "";

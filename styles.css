@@ -7,8 +7,28 @@ body {
     background-color: #f4f4f4;
 }
 
+@media (max-width: 1200px) {
+    .container {
+        width: 90%;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        width: 100%;
+        padding: 10px;
+    }
+}
+
 .container {
-    width: 80%;
+    width: 100%;
+    max-width: 1200px;
     margin: auto;
     overflow: hidden;
     padding: 20px;
