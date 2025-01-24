@@ -111,35 +111,68 @@ window.addEventListener('load', function() {
 });
 
 function clockOut() {
-    if (!startTime) {
+    const storedStartTime = localStorage.getItem('startTime');
+
+    // Ensure there is a valid clock-in time
+    if (!storedStartTime) {
         alert('You are not clocked in.');
         return;
     }
-    
-    clearInterval(timerInterval);
+
+    // Parse stored start time and get the current time
+    const startTime = new Date(parseInt(storedStartTime));
     const endTime = new Date();
-    const totalTime = calculateTotalTime(startTime, endTime);
-    
+
+    // Format times into HH:MM:SS AM/PM for calculateTotalTime
+    const startTimeFormatted = formatToAMPM(startTime);
+    const endTimeFormatted = formatToAMPM(endTime);
+
+    // Calculate total time using the formatted strings
+    const totalTime = calculateTotalTime(startTimeFormatted, endTimeFormatted);
+
+    // Save session data
     sessions.push({
-        topic: currentTopic.textContent,
-        startTime: new Date(startTime).toLocaleTimeString(),
-        endTime: endTime.toLocaleTimeString(),
+        topic: localStorage.getItem('currentTopic') || 'No Topic',
+        startTime: startTimeFormatted,
+        endTime: endTimeFormatted,
         totalTime: totalTime,
-        date: new Date(startTime).toLocaleDateString()
+        date: startTime.toLocaleDateString(),
     });
-    
+
+    // Update localStorage and UI
     localStorage.setItem('sessions', JSON.stringify(sessions));
     updateSessionsList();
     resetTimer();
 }
 
-function calculateTotalTime(start, end) {
-    const diff = end - start;
-    const hours = Math.floor(diff / 3600000);
-    const minutes = Math.floor((diff % 3600000) / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
-    return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+function formatToAMPM(date) {
+    let hours = date.getHours();
+    const minutes = padZero(date.getMinutes());
+    const seconds = padZero(date.getSeconds());
+    const period = hours >= 12 ? 'PM' : 'AM';
+
+    hours = hours % 12 || 12; // Convert to 12-hour format
+    return `${padZero(hours)}:${minutes}:${seconds} ${period}`;
 }
+
+
+function calculateTotalTime(clockedIn, clockedOut) {
+    const [inHours, inMinutes, inSeconds, inPeriod] = clockedIn.match(/(\d+):(\d+):(\d+) (AM|PM)/).slice(1);
+    const [outHours, outMinutes, outSeconds, outPeriod] = clockedOut.match(/(\d+):(\d+):(\d+) (AM|PM)/).slice(1);
+
+    let inTime = new Date(2023, 0, 1, inHours % 12 + (inPeriod === 'PM' ? 12 : 0), inMinutes, inSeconds);
+    let outTime = new Date(2023, 0, 1, outHours % 12 + (outPeriod === 'PM' ? 12 : 0), outMinutes, outSeconds);
+
+    if (outTime < inTime) {
+        outTime.setDate(outTime.getDate() + 1);
+    }
+
+    const diffMs = outTime - inTime;
+    return formatTime(diffMs);
+}
+
+
+
 
 function updateTimer() {
     const currentTime = new Date();
@@ -173,39 +206,107 @@ function deleteSession(index) {
 }
 
 function editSession(index) {
+    const session = sessions[index];
     const row = sessionsList.children[index];
-    const cells = row.children;
-    
-    for (let i = 0; i < cells.length - 1; i++) {
-        const cellContent = cells[i].textContent;
-        cells[i].innerHTML = `<input type="text" class="edit-input" value="${cellContent}">`;
-    }
-    
-    const actionCell = cells[cells.length - 1];
-    actionCell.innerHTML = `
-        <button class="save-btn" onclick="saveSession(${index})">Save</button>
-        <button class="cancel-btn" onclick="cancelEdit(${index})">Cancel</button>
+
+    row.innerHTML = `
+        <td><input type="text" class="edit-topic" value="${session.topic || ''}"></td>
+        <td><input type="text" class="edit-clockedIn" value="${session.startTime || ''}"></td>
+        <td><input type="text" class="edit-clockedOut" value="${session.endTime || ''}"></td>
+        <td id="updatedTotalTime">${session.totalTime || '00:00:00'}</td>
+        <td><input type="text" class="edit-date" value="${session.date || ''}"></td>
+        <td>
+            <button class="save-btn" data-index="${index}">Save</button>
+            <button class="cancel-btn" data-index="${index}">Cancel</button>
+        </td>
     `;
+
+    const saveButton = row.querySelector('.save-btn');
+    const cancelButton = row.querySelector('.cancel-btn');
+
+    saveButton.addEventListener('click', () => saveSession(index));
+    cancelButton.addEventListener('click', () => cancelEdit(index));
 }
+
+
 
 function saveSession(index) {
     const row = sessionsList.children[index];
-    const inputs = row.querySelectorAll('.edit-input');
-    
+    const topic = row.querySelector('.edit-topic').value;
+    const startTimeInput = row.querySelector('.edit-clockedIn').value;
+    const endTimeInput = row.querySelector('.edit-clockedOut').value;
+    const date = row.querySelector('.edit-date').value;
+
+    // Validate inputs
+    if (!startTimeInput.match(/\d+:\d+:\d+ (AM|PM)/) || !endTimeInput.match(/\d+:\d+:\d+ (AM|PM)/)) {
+        alert("Invalid time format. Please use HH:MM:SS AM/PM.");
+        return;
+    }
+
+    // Recalculate total time
+    const totalTime = calculateTotalTime(startTimeInput, endTimeInput);
+
+    // Update the session
     sessions[index] = {
-        topic: inputs[0].value,
-        startTime: inputs[1].value,
-        endTime: inputs[2].value,
-        totalTime: inputs[3].value,
-        date: inputs[4].value
+        topic,
+        startTime: startTimeInput,
+        endTime: endTimeInput,
+        totalTime,
+        date,
     };
-    
+
+    // Re-render the updated session row
+    row.innerHTML = `
+        <td>${topic}</td>
+        <td>${startTimeInput}</td>
+        <td>${endTimeInput}</td>
+        <td>${totalTime}</td>
+        <td>${date}</td>
+        <td>
+            <button class="edit-btn" data-index="${index}">Edit</button>
+            <button class="delete-btn" data-index="${index}">Delete</button>
+        </td>
+    `;
+
+    // Re-attach event listeners for the new buttons
+    row.querySelector('.edit-btn').addEventListener('click', () => editSession(index));
+    row.querySelector('.delete-btn').addEventListener('click', () => deleteSession(index));
+
+    // Update sessions in localStorage
     localStorage.setItem('sessions', JSON.stringify(sessions));
-    updateSessionsList();
 }
 
+
+function parseTime(timeString) {
+    // Ensure time string is valid, format: HH:mm:ss
+    if (!/^\d{2}:\d{2}:\d{2}$/.test(timeString)) {
+        return new Date(NaN); // Invalid Date
+    }
+    return new Date(`2023-01-01T${timeString}`);
+}
+
+
+
 function cancelEdit(index) {
-    updateSessionsList();
+    const session = sessions[index];
+    const row = sessionsList.children[index];
+
+    // Re-render the original session row
+    row.innerHTML = `
+        <td>${session.topic}</td>
+        <td>${session.startTime}</td>
+        <td>${session.endTime}</td>
+        <td>${session.totalTime}</td>
+        <td>${session.date}</td>
+        <td>
+            <button class="edit-btn" data-index="${index}">Edit</button>
+            <button class="delete-btn" data-index="${index}">Delete</button>
+        </td>
+    `;
+
+    // Re-attach event listeners for the new buttons
+    row.querySelector('.edit-btn').addEventListener('click', () => editSession(index));
+    row.querySelector('.delete-btn').addEventListener('click', () => deleteSession(index));
 }
 
 clockInBtn.addEventListener('click', clockIn);
