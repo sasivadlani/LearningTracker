@@ -108,7 +108,8 @@ function clearLocalStorage() {
 // Load sessions from DynamoDB
 function loadSessions(sessions) {
     sessionsTable.innerHTML = ""; // Clear the table
-    sessions.forEach((session, index) => {
+    sessions.slice().reverse().forEach((session, reverseIndex) => { // Reverse the sessions array
+        const index = sessions.length - 1 - reverseIndex; // Calculate the correct index
         const row = document.createElement("tr");
         row.innerHTML = `
             <td><input type="text" class="edit-input" value="${session.topic}" disabled /></td>
@@ -130,7 +131,7 @@ function loadSessions(sessions) {
     document.querySelectorAll(".edit-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             const index = e.target.dataset.index;
-            const row = sessionsTable.rows[index];
+            const row = sessionsTable.rows[sessions.length - 1 - index]; // Adjust row index
             row.querySelectorAll(".edit-input").forEach(input => input.disabled = false);
             row.querySelector(".edit-btn").style.display = "none";
             row.querySelector(".save-btn").style.display = "inline-block";
@@ -143,7 +144,7 @@ function loadSessions(sessions) {
     document.querySelectorAll(".save-btn").forEach(btn => {
         btn.addEventListener("click", async (e) => {
             const index = e.target.dataset.index;
-            const row = sessionsTable.rows[index];
+            const row = sessionsTable.rows[sessions.length - 1 - index]; // Adjust row index
 
             // Get updated values
             const updatedTopic = row.cells[0].querySelector(".edit-input").value.trim();
@@ -206,7 +207,7 @@ function loadSessions(sessions) {
     document.querySelectorAll(".delete-btn").forEach(btn => {
         btn.addEventListener("click", async (e) => {
             const index = e.target.dataset.index; // Get the session index
-            const confirmDelete = confirm("Are you sure you want to delete this session?");
+            const confirmDelete = confirm(`Are you sure you want to delete "${sessions[index].topic}"?`);
             if (!confirmDelete) {
                 return;
             }
