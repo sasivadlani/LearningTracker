@@ -20,6 +20,7 @@ const clockOutBtn = document.getElementById("clockOutBtn");
 const currentTopic = document.getElementById("currentTopic");
 const timer = document.getElementById("timer");
 const sessionsTable = document.getElementById("sessions");
+const localTimeElement = document.getElementById("localTime");
 
 // Global Variables
 let currentSession = {};
@@ -395,4 +396,11 @@ clockOutBtn.addEventListener("click", async () => {
 // Initialize the app by loading data from localStorage
 window.onload = () => {
     loadFromLocalStorage();
+    updateLocalTime();
+    setInterval(updateLocalTime, 1000);
 };
+
+function updateLocalTime() {
+    const now = new Date();
+    localTimeElement.textContent = now.toLocaleTimeString();
+}
