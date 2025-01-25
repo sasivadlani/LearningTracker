@@ -116,7 +116,7 @@ function loadSessions(sessions) {
             <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
             <td>${session.totalTime}</td>
             <td>${formatDate(session.date)}</td>
-            <td>
+            <td class="actions">
                 <button class="edit-btn" data-index="${index}">Edit</button>
                 <button class="save-btn" data-index="${index}" style="display: none;">Save</button>
                 <button class="cancel-btn" data-index="${index}" style="display: none;">Cancel</button>
@@ -135,6 +135,7 @@ function loadSessions(sessions) {
             row.querySelector(".edit-btn").style.display = "none";
             row.querySelector(".save-btn").style.display = "inline-block";
             row.querySelector(".cancel-btn").style.display = "inline-block";
+            row.querySelector(".actions").classList.add("editing"); // Add class to expand actions column
         });
     });
 
@@ -186,6 +187,7 @@ function loadSessions(sessions) {
                 await docClient.update(params).promise();
                 saveToLocalStorage(); // Update local storage
                 loadSessions(sessions); // Reload the table
+                row.querySelector(".actions").classList.remove("editing"); // Remove class after editing
             } catch (err) {
                 console.error("Error updating session:", err);
                 alert("Error updating session. Check console.");
@@ -204,6 +206,10 @@ function loadSessions(sessions) {
     document.querySelectorAll(".delete-btn").forEach(btn => {
         btn.addEventListener("click", async (e) => {
             const index = e.target.dataset.index; // Get the session index
+            const confirmDelete = confirm("Are you sure you want to delete this session?");
+            if (!confirmDelete) {
+                return;
+            }
             sessions.splice(index, 1); // Remove the session from the local array
             saveToLocalStorage(); // Update local storage
 
@@ -225,6 +231,20 @@ function loadSessions(sessions) {
                 alert("Error deleting session. Check console.");
             }
         });
+    });
+
+    // Update button classes in script.js
+    document.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.classList.add("btn", "btn-primary");
+    });
+    document.querySelectorAll(".save-btn").forEach(btn => {
+        btn.classList.add("btn", "btn-success");
+    });
+    document.querySelectorAll(".cancel-btn").forEach(btn => {
+        btn.classList.add("btn", "btn-secondary");
+    });
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.classList.add("btn", "btn-danger");
     });
 }
 
@@ -251,6 +271,12 @@ submitPassword.addEventListener("click", async () => {
     } catch (err) {
         console.error("Error logging in:", err);
         alert("Error logging in. Check console.");
+    }
+});
+
+passwordInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        submitPassword.click();
     }
 });
 

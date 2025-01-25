@@ -4,47 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learning Tracker</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="passwordPrompt" class="container">
-        <h1>Learning Tracker</h1>
-        <input type="password" id="passwordInput" placeholder="Enter password">
-        <button id="submitPassword">Submit</button>
+    <div id="passwordPrompt" class="container mt-5">
+        <h1 class="text-center">Learning Tracker</h1>
+        <div class="form-group">
+            <input type="password" id="passwordInput" class="form-control" placeholder="Enter password">
+        </div>
+        <button id="submitPassword" class="btn btn-primary btn-block">Submit</button>
     </div>
 
-    <div id="mainContent" class="container" style="display: none;">
-        <h1>Learning Tracker</h1>
-        <button id="logoutBtn">Logout</button>
+    <div id="mainContent" class="container mt-5" style="display: none;">
+        <h1 class="text-center">Learning Tracker</h1>
+        <button id="logoutBtn" class="btn btn-danger btn-block">Logout</button>
 
-        <div id="clockInOut">
-            <input type="text" id="topic" placeholder="Enter topic">
-            <button id="clockInBtn">Clock In</button>
-            <button id="clockOutBtn" disabled>Clock Out</button>
+        <div id="clockInOut" class="mt-4">
+            <div class="form-group">
+                <input type="text" id="topic" class="form-control" placeholder="Enter topic">
+            </div>
+            <button id="clockInBtn" class="btn btn-success">Clock In</button>
+            <button id="clockOutBtn" class="btn btn-warning" disabled>Clock Out</button>
         </div>
-        <div id="currentSession">
+        <div id="currentSession" class="mt-4">
             <h2>Current Session</h2>
-            <span id="currentTopic"></span>
-            <span id="timer">00:00:00</span>
+            <span id="currentTopic" class="d-block"></span>
+            <span id="timer" class="d-block font-weight-bold">00:00:00</span>
         </div>
-        <div id="sessionList">
+        <div id="sessionList" class="mt-4">
             <h2>Previous Sessions</h2>
-            <table id="sessionsTable">
+            <table id="sessionsTable" class="table table-striped">
                 <thead>
                     <tr>
-                        <th>Topic</th>
-                        <th>Started</th>
-                        <th>Ended</th>
-                        <th>Total Time</th>
-                        <th>Date</th>
-                        <th>Actions</th>
+                        <th class="topic">Topic</th>
+                        <th class="started">Started</th>
+                        <th class="ended">Ended</th>
+                        <th class="totalTime">Total Time</th>
+                        <th class="date">Date</th>
+                        <th class="actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="sessions"></tbody>
             </table>
         </div>
     </div>
-</body>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1351.0.min.js"></script>
     <script src="script.js"></script>
+</body>
 </html>
