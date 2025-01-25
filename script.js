@@ -105,6 +105,11 @@ function clearLocalStorage() {
     localStorage.removeItem("sessions");
 }
 
+function formatDateForDisplay(date) {
+    const options = { day: '2-digit', month: 'short', year: 'numeric', weekday: 'short' };
+    return new Date(date).toLocaleDateString('en-GB', options);
+}
+
 // Load sessions from DynamoDB
 function loadSessions(sessions) {
     sessionsTable.innerHTML = ""; // Clear the table
@@ -116,7 +121,7 @@ function loadSessions(sessions) {
             <td><input type="text" class="edit-input" value="${formatTime(session.started)}" disabled /></td>
             <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
             <td>${session.totalTime}</td>
-            <td>${formatDate(session.date)}</td>
+            <td>${formatDateForDisplay(session.date)}</td>
             <td class="actions">
                 <button class="edit-btn" data-index="${index}">Edit</button>
                 <button class="save-btn" data-index="${index}" style="display: none;">Save</button>
@@ -158,10 +163,13 @@ function loadSessions(sessions) {
 
             // Parse updated time and recalculate total time
             const startedTime = new Date(`${formatDate(sessions[index].date)} ${updatedStarted}`).getTime();
-            const endedTime = new Date(`${formatDate(sessions[index].date)} ${updatedEnded}`).getTime();
+            let endedTime = new Date(`${formatDate(sessions[index].date)} ${updatedEnded}`).getTime();
             if (endedTime <= startedTime) {
-                alert("Ended time must be after the Started time.");
-                return;
+                const confirmNextDay = confirm("The entered end time is before the start time. Do you want to consider it as the next day?");
+                if (!confirmNextDay) {
+                    return;
+                }
+                endedTime += 24 * 60 * 60 * 1000; // Add 24 hours to the end time
             }
             const newTotalTime = calculateTotalTime(startedTime, endedTime);
 
@@ -321,7 +329,7 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 // Start Session
 clockInBtn.addEventListener("click", () => {
     const topic = topicInput.value.trim();
-    const specialCharPattern = /[^a-zA-Z0-9 ]/g;
+    const specialCharPattern = /[^a-zA-Z0-9 &@,._-]/g;
 
     if (!topic) {
         return alert("Please enter a topic!");
