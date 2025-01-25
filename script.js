@@ -3,8 +3,8 @@ import awsConfig from './config.js';
 // AWS Configuration
 AWS.config.update({
     region: "us-east-1", // Replace with your DynamoDB region
-    accessKeyId: awsConfig.accessKeyId,
-    secretAccessKey: awsConfig.secretAccessKey
+    accessKeyId: "awsConfig.accessKeyId",
+    secretAccessKey: "awsConfig.secretAccessKey"
 });
 
 
