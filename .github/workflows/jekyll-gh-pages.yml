@@ -35,8 +35,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          sed -i 's/AWS_ACCESS_KEY_ID/${{ secrets.AWS_ACCESS_KEY_ID }}/g' script.js
-          sed -i 's/AWS_SECRET_ACCESS_KEY/${{ secrets.AWS_SECRET_ACCESS_KEY }}/g' script.js
+          sed -i 's/awsConfig.accessKeyId/${{ secrets.AWS_ACCESS_KEY_ID }}/g' script.js
+          sed -i 's/awsConfig.secretAccessKey/${{ secrets.AWS_SECRET_ACCESS_KEY }}/g' script.js
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
