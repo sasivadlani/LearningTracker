@@ -128,3 +128,44 @@ table td.actions.editing {
         white-space: nowrap;
     }
 }
+
+/* Collapsible Styles */
+.collapsible {
+    cursor: pointer;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 18px;
+    background-color: #e0e0e0;
+    color: #333;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.collapsible .icon {
+    transition: transform 0.3s ease;
+}
+
+.collapsible.active .icon {
+    transform: rotate(90deg);
+}
+
+.active, .collapsible:hover {
+    background-color: #d0d0d0;
+}
+
+.collapsible-content {
+    padding: 10px;
+    display: none;
+    overflow: hidden;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
