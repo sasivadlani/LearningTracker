@@ -7,7 +7,8 @@ body {
     background-color: #f4f4f4;
 }
 
-#currentSession, #sessionList {
+#currentSession,
+#sessionList {
     background: #fff;
     padding: 20px;
     margin-top: 20px;
@@ -40,7 +41,9 @@ body {
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    #currentSession, #sessionList {
+
+    #currentSession,
+    #sessionList {
         padding: 15px;
         margin-top: 15px;
     }
@@ -61,7 +64,9 @@ body {
 }
 
 @media (max-width: 480px) {
-    #currentSession, #sessionList {
+
+    #currentSession,
+    #sessionList {
         padding: 10px;
         margin-top: 10px;
     }
@@ -87,38 +92,54 @@ table {
     border-collapse: collapse;
     overflow-x: auto;
     display: block;
-    table-layout: fixed; /* Ensure table takes up full width */
+    table-layout: fixed;
+    /* Ensure table takes up full width */
 }
 
-table th, table td {
+table th,
+table td {
     padding: 10px;
     border: 1px solid #ddd;
-    text-align: center; /* Center all items in the cells */
+    text-align: center;
+    /* Center all items in the cells */
     white-space: nowrap;
 }
 
-table th.topic, table td.topic {
-    width: auto; /* Allow topic column to take remaining space */
-    white-space: normal; /* Allow text to wrap */
+table th.topic,
+table td.topic {
+    width: auto;
+    /* Allow topic column to take remaining space */
+    white-space: normal;
+    /* Allow text to wrap */
 }
 
-table th.started, table td.started,
-table th.ended, table td.ended,
-table th.totalTime, table td.totalTime,
-table th.date, table td.date,
-table th.actions, table td.actions {
-    width: 140px; /* Set fixed width for other columns */
+table th.started,
+table td.started,
+table th.ended,
+table td.ended,
+table th.totalTime,
+table td.totalTime,
+table th.date,
+table td.date,
+table th.actions,
+table td.actions {
+    width: 140px;
+    /* Set fixed width for other columns */
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-table th.actions, table td.actions {
-    width: 1%; /* Give actions column minimal width initially */
-    white-space: nowrap; /* Prevent text from wrapping */
+table th.actions,
+table td.actions {
+    width: 1%;
+    /* Give actions column minimal width initially */
+    white-space: nowrap;
+    /* Prevent text from wrapping */
 }
 
 table td.actions.editing {
-    width: auto; /* Allow actions column to expand when editing */
+    width: auto;
+    /* Allow actions column to expand when editing */
 }
 
 @media (max-width: 768px) {
@@ -156,7 +177,8 @@ table td.actions.editing {
     transform: rotate(90deg);
 }
 
-.active, .collapsible:hover {
+.active,
+.collapsible:hover {
     background-color: #d0d0d0;
 }
 

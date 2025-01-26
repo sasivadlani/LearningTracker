@@ -131,12 +131,14 @@ function loadSessions(sessions) {
         sessionsByDate[date].sort((a, b) => new Date(b.started) - new Date(a.started));
 
         const dateSection = document.createElement("div");
+        const isToday = date === formatDateForDisplay(new Date());
+
         dateSection.innerHTML = `
-            <button class="collapsible">
+            <button class="collapsible" ${isToday ? 'class="active"' : ''}>
                 ${date}
                 <span class="icon">></span>
             </button>
-            <div class="collapsible-content">
+            <div class="collapsible-content" style="${isToday ? 'display:block;' : ''}">
                 <table class="table table-striped">
                     <thead>
                         <tr>
@@ -171,7 +173,7 @@ function loadSessions(sessions) {
 
     // Add collapsible functionality
     document.querySelectorAll(".collapsible").forEach(button => {
-        button.addEventListener("click", function() {
+        button.addEventListener("click", function () {
             this.classList.toggle("active");
             const content = this.nextElementSibling;
             if (content.style.display === "block") {
