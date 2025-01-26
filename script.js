@@ -146,6 +146,7 @@ function loadSessions(sessions) {
                             <th class="started">Started</th>
                             <th class="ended">Ended</th>
                             <th class="totalTime">Total Time</th>
+                            <th class="comment">Comment</th>
                             <th class="actions">Actions</th>
                         </tr>
                     </thead>
@@ -156,6 +157,7 @@ function loadSessions(sessions) {
                                 <td><input type="text" class="edit-input" value="${formatTime(session.started)}" disabled /></td>
                                 <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
                                 <td>${session.totalTime}</td>
+                                <td><input type="text" class="edit-input comment-input" value="${session.comment || ''}" disabled /></td>
                                 <td class="actions">
                                     <button class="edit-btn btn btn-primary" data-session-index="${sessions.indexOf(session)}">Edit</button>
                                     <button class="save-btn btn btn-success" data-session-index="${sessions.indexOf(session)}" style="display: none;">Save</button>
@@ -207,6 +209,7 @@ function loadSessions(sessions) {
             const updatedTopic = row.cells[0].querySelector(".edit-input").value.trim();
             const updatedStarted = row.cells[1].querySelector(".edit-input").value.trim();
             const updatedEnded = row.cells[2].querySelector(".edit-input").value.trim();
+            const updatedComment = row.cells[4].querySelector(".comment-input").value.trim(); // Corrected cell index
 
             if (!updatedTopic || !updatedStarted || !updatedEnded) {
                 alert("All fields (Topic, Started, Ended) must be filled!");
@@ -231,7 +234,8 @@ function loadSessions(sessions) {
                 topic: updatedTopic,
                 started: startedTime,
                 ended: endedTime,
-                totalTime: newTotalTime
+                totalTime: newTotalTime,
+                comment: updatedComment
             };
 
             // Save to DynamoDB
@@ -425,6 +429,7 @@ clockOutBtn.addEventListener("click", async () => {
 
     currentSession.ended = Date.now();
     currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
+    currentSession.comment = ""; // Add empty comment field
 
     clockInBtn.disabled = false;
     clockOutBtn.disabled = true;

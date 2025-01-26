@@ -30,6 +30,8 @@ body {
     width: 90%;
     padding: 5px;
     border: 1px solid #ddd;
+    overflow: auto;
+    white-space: nowrap;
 }
 
 #localTime {
@@ -111,6 +113,18 @@ table td.topic {
     /* Allow topic column to take remaining space */
     white-space: normal;
     /* Allow text to wrap */
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+table th.comment,
+table td.comment {
+    width: 20%;
+    /* Reduce the width of the comment column */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
 }
 
 table th.started,
