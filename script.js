@@ -247,7 +247,9 @@ function loadSessions(sessions) {
             try {
                 await docClient.update(params).promise();
                 saveToLocalStorage(); // Update local storage
+                const openSections = getOpenSections();
                 loadSessions(sessions); // Reload the table
+                setOpenSections(openSections);
                 row.querySelector(".actions").classList.remove("editing"); // Remove class after editing
             } catch (err) {
                 console.error("Error updating session:", err);
@@ -259,7 +261,9 @@ function loadSessions(sessions) {
     // Cancel Editing
     document.querySelectorAll(".cancel-btn").forEach(btn => {
         btn.addEventListener("click", () => {
+            const openSections = getOpenSections();
             loadSessions(sessions); // Reload table without changes
+            setOpenSections(openSections);
         });
     });
 
@@ -286,12 +290,33 @@ function loadSessions(sessions) {
 
             try {
                 await docClient.update(params).promise();
+                const openSections = getOpenSections();
                 loadSessions(sessions); // Reload the table with updated data
+                setOpenSections(openSections);
             } catch (err) {
                 console.error("Error deleting session:", err);
                 alert("Error deleting session. Check console.");
             }
         });
+    });
+}
+
+function getOpenSections() {
+    const openSections = [];
+    document.querySelectorAll(".collapsible").forEach((button, index) => {
+        if (button.classList.contains("active")) {
+            openSections.push(index);
+        }
+    });
+    return openSections;
+}
+
+function setOpenSections(openSections) {
+    document.querySelectorAll(".collapsible").forEach((button, index) => {
+        if (openSections.includes(index)) {
+            button.classList.add("active");
+            button.nextElementSibling.style.display = "block";
+        }
     });
 }
 
