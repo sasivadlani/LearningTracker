@@ -20,16 +20,18 @@
 
     <div id="mainContent" class="container mt-5" style="display: none;">
         <h1 class="text-center">Learning Tracker</h1>
-        <button id="logoutBtn" class="btn btn-danger btn-block">Logout</button>
+        <button id="logoutBtn" class="btn btn-danger">Logout</button>
 
-        <div id="clockInOut" class="mt-4">
-            <div class="form-group">
-                <input type="text" id="topic" class="form-control" placeholder="Enter topic">
+        <div id="clockInOut" class="mt-4 d-flex">
+            <div class="form-group flex-grow-1 mr-2">
+            <input type="text" id="topic" class="form-control" placeholder="Enter topic">
             </div>
-            <button id="clockInBtn" class="btn btn-success">Clock In</button>
+            <div class="d-flex">
+            <button id="clockInBtn" class="btn btn-success mr-2">Clock In</button>
             <button id="clockOutBtn" class="btn btn-warning" disabled>Clock Out</button>
+            </div>
         </div>
-        <div id="currentSession" class="mt-4">
+        <div id="currentSession" class="mt-2">
             <div class="d-flex justify-content-between align-items-center">
                 <h2 class="mb-0">Current Session</h2>
                 <p id="localTime" class="mb-0"></p>
