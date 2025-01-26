@@ -96,6 +96,35 @@ body {
     margin-top: 1rem;
 }
 
+#todoList {
+    margin-top: 150px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 5px;
+
+}
+
+#todoList ul {
+    list-style-type: none;
+    padding: 0px;
+}
+
+#todoList ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#todoList ul li input[type="text"] {
+    flex-grow: 1;
+    margin-right: 10px;
+    width: 120px;
+}
+
+#todoItems {
+    width: 120px;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
 
@@ -117,6 +146,27 @@ body {
     .edit-input {
         width: 100%;
         padding: 10px;
+    }
+
+    #todoList {
+        padding: 15px;
+        margin-top: 15px;
+        flex-basis: 100%;
+    }
+
+    #todoList ul li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #todoList ul li input[type="text"] {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    #todoList ul li button {
+        margin-left: 0;
+        width: 100%;
     }
 }
 
@@ -140,6 +190,27 @@ body {
     .edit-input {
         width: 100%;
         padding: 8px;
+    }
+
+    #todoList {
+        padding: 10px;
+        margin-top: 10px;
+        flex-basis: 100%;
+    }
+
+    #todoList ul li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #todoList ul li input[type="text"] {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    #todoList ul li button {
+        margin-left: 0;
+        width: 100%;
     }
 }
 

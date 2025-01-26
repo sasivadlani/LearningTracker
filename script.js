@@ -21,6 +21,10 @@ const currentTopic = document.getElementById("currentTopic");
 const timer = document.getElementById("timer");
 const sessionsContainer = document.getElementById("sessionsContainer");
 const localTimeElement = document.getElementById("localTime");
+const todoList = document.getElementById("todoList");
+const newTodoInput = document.getElementById("newTodo");
+const addTodoBtn = document.getElementById("addTodoBtn");
+const todoItems = document.getElementById("todoItems");
 
 // Global Variables
 let currentSession = {};
@@ -90,6 +94,8 @@ function loadFromLocalStorage() {
                     clockOutBtn.disabled = false;
                     currentTopic.textContent = currentSession.topic;
                     startTimer(currentSession.started);
+                    todoList.style.display = "block"; // Ensure todo list is visible
+                    loadTodos();
                 }
                 loadSessions(sessions);
                 passwordPrompt.style.display = "none";
@@ -421,6 +427,8 @@ clockInBtn.addEventListener("click", () => {
     clockOutBtn.disabled = false;
     currentTopic.textContent = topic;
     startTimer(currentSession.started);
+    todoList.style.display = "block"; // Ensure todo list is visible
+    loadTodos();
 });
 
 // Stop Session
@@ -453,6 +461,7 @@ clockOutBtn.addEventListener("click", async () => {
         loadSessions(sessions);
         currentTopic.textContent = "";
         timer.textContent = "00:00:00";
+        todoList.style.display = "none";
     } catch (err) {
         console.error("Error saving session:", err);
         alert("Error saving session. Check console.");
@@ -464,9 +473,47 @@ window.onload = () => {
     loadFromLocalStorage();
     updateLocalTime();
     setInterval(updateLocalTime, 1000);
+    loadTodos();
 };
 
 function updateLocalTime() {
     const now = new Date();
     localTimeElement.textContent = now.toLocaleTimeString();
 }
+
+function loadTodos() {
+    const todos = JSON.parse(localStorage.getItem("todos")) || [];
+    todoItems.innerHTML = "";
+    todos.forEach((todo, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <input type="text" value="${todo}" disabled>
+            <button class="btn btn-danger btn-sm" onclick="deleteTodo(${index})">Delete</button>
+        `;
+        todoItems.appendChild(li);
+    });
+}
+
+function saveTodos(todos) {
+    localStorage.setItem("todos", JSON.stringify(todos));
+}
+
+function addTodo() {
+    const todo = newTodoInput.value.trim();
+    if (todo) {
+        const todos = JSON.parse(localStorage.getItem("todos")) || [];
+        todos.push(todo);
+        saveTodos(todos);
+        loadTodos();
+        newTodoInput.value = "";
+    }
+}
+
+function deleteTodo(index) {
+    const todos = JSON.parse(localStorage.getItem("todos")) || [];
+    todos.splice(index, 1);
+    saveTodos(todos);
+    loadTodos();
+}
+
+addTodoBtn.addEventListener("click", addTodo);

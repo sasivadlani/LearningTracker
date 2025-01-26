@@ -19,7 +19,20 @@
     </div>
 
     <div class="container-fluid d-flex">
-        <div class="flex-grow-1"></div>
+        <div class="flex-grow-1">
+            <div id="todoList" class="" style="display: none;">
+                <h3>Distraction List</h3>
+                <div class="form-group d-flex">
+                    <ul class="list-inline">
+                        <li class="list-inline-item">
+                            <input type="text" id="newTodo" class="form-control" placeholder="New Todo">
+                            <button id="addTodoBtn" class="btn btn-primary">Add</button>
+                        </li>
+                    </ul>
+                </div>
+                <ul id="todoItems"></ul>
+            </div>
+        </div>
         <div id="mainContent" class="container mt-3">
             <h1 class="text-center">Learning Tracker</h1>
             <button id="logoutBtn" class="btn btn-danger">Logout</button>
