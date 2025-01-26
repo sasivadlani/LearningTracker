@@ -420,6 +420,7 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
     topicInput.value = "";
     timer.textContent = "00:00:00";
     currentSession = {};
+    todoList.classList.add("d-none"); // Hide todo list on logout
 });
 
 // Start Session
@@ -507,9 +508,14 @@ function loadTodos() {
     todoItems.innerHTML = "";
     todos.forEach((todo, index) => {
         const li = document.createElement("li");
+        li.className = `list-group-item d-flex justify-content-between align-items-center ${todo.checked ? "checked" : ""}`;
         li.innerHTML = `
-            <input type="text" value="${todo}" disabled>
-            <button class="btn btn-danger btn-sm" onclick="deleteTodo(${index})">Delete</button>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" ${todo.checked ? "checked" : ""} onclick="toggleTodoCheck(${index})">
+                <input type="text" class="form-control-plaintext" value="${todo.text}" disabled>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="deleteTodo(${index})">x</button>
+
         `;
         todoItems.appendChild(li);
     });
@@ -523,7 +529,7 @@ function addTodo() {
     const todo = newTodoInput.value.trim();
     if (todo) {
         const todos = JSON.parse(localStorage.getItem("todos")) || [];
-        todos.push(todo);
+        todos.unshift({ text: todo, checked: false }); // Add new todo to the top
         saveTodos(todos);
         loadTodos();
         newTodoInput.value = "";
@@ -533,6 +539,22 @@ function addTodo() {
 function deleteTodo(index) {
     const todos = JSON.parse(localStorage.getItem("todos")) || [];
     todos.splice(index, 1);
+    saveTodos(todos);
+    loadTodos();
+}
+
+function toggleTodoCheck(index) {
+    const todos = JSON.parse(localStorage.getItem("todos")) || [];
+    todos[index].checked = !todos[index].checked;
+    if (todos[index].checked) {
+        const [checkedTodo] = todos.splice(index, 1);
+        const firstUncheckedIndex = todos.findIndex(todo => todo.checked);
+        if (firstUncheckedIndex === -1) {
+            todos.push(checkedTodo);
+        } else {
+            todos.splice(firstUncheckedIndex, 0, checkedTodo);
+        }
+    }
     saveTodos(todos);
     loadTodos();
 }
