@@ -101,7 +101,7 @@ body {
     background: #fff;
     padding: 20px;
     border-radius: 5px;
-
+    
 }
 
 #todoList ul {
@@ -113,6 +113,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 5px;
 }
 
 #todoList ul li input[type="text"] {
@@ -330,4 +331,20 @@ table td.actions.editing {
     border: 1px solid #ddd;
     border-radius: 5px;
     margin-bottom: 10px;
+}
+
+.comment-textarea {
+    display: none;
+    width: 100%;
+    height: auto;
+    border: none;
+    resize: none;
+    background: transparent;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.comment-cell {
+    cursor: pointer;
 }

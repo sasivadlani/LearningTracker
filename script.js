@@ -94,12 +94,12 @@ function loadFromLocalStorage() {
                     clockOutBtn.disabled = false;
                     currentTopic.textContent = currentSession.topic;
                     startTimer(currentSession.started);
-                    todoList.style.display = "block"; // Ensure todo list is visible
-                    loadTodos();
                 }
                 loadSessions(sessions);
                 passwordPrompt.style.display = "none";
                 mainContent.style.display = "block";
+                todoList.classList.remove("d-none"); // Ensure todo list is visible
+                loadTodos();
             }
         });
     }
@@ -115,6 +115,20 @@ function clearLocalStorage() {
 function formatDateForDisplay(date) {
     const options = { day: '2-digit', month: 'short', year: 'numeric', weekday: 'short' };
     return new Date(date).toLocaleDateString('en-GB', options);
+}
+
+function toggleCommentDisplay(event) {
+    const commentCell = event.currentTarget.closest('.comment-cell');
+    const commentInput = commentCell.querySelector(".comment-input");
+    const commentTextarea = commentCell.querySelector(".comment-textarea");
+    if (commentInput.disabled) {
+        if (commentTextarea.style.display === "none" || !commentTextarea.style.display) {
+            commentTextarea.style.display = "block";
+            commentTextarea.value = commentInput.value;
+        } else {
+            commentTextarea.style.display = "none";
+        }
+    }
 }
 
 // Load sessions from DynamoDB
@@ -163,7 +177,10 @@ function loadSessions(sessions) {
                                 <td><input type="text" class="edit-input" value="${formatTime(session.started)}" disabled /></td>
                                 <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
                                 <td>${session.totalTime}</td>
-                                <td><input type="text" class="edit-input comment-input" value="${session.comment || ''}" disabled /></td>
+                                <td class="comment-cell">
+                                    <input type="text" class="edit-input comment-input" value="${session.comment || ''}" disabled />
+                                    <textarea class="comment-textarea" readonly></textarea>
+                                </td>
                                 <td class="actions">
                                     <button class="edit-btn btn btn-primary" data-session-index="${sessions.indexOf(session)}">Edit</button>
                                     <button class="save-btn btn btn-success" data-session-index="${sessions.indexOf(session)}" style="display: none;">Save</button>
@@ -309,6 +326,11 @@ function loadSessions(sessions) {
             }
         });
     });
+
+    // Add event listener for comment cells and inputs
+    document.querySelectorAll(".comment-cell, .comment-input").forEach(element => {
+        element.addEventListener("click", toggleCommentDisplay);
+    });
 }
 
 function getOpenSections() {
@@ -346,6 +368,8 @@ submitPassword.addEventListener("click", async () => {
             loadSessions(sessions);
             passwordPrompt.style.display = "none";
             mainContent.style.display = "block";
+            todoList.classList.remove("d-none"); // Ensure todo list is visible after login
+            loadTodos();
         } else {
             alert("Invalid Password");
         }
@@ -427,8 +451,6 @@ clockInBtn.addEventListener("click", () => {
     clockOutBtn.disabled = false;
     currentTopic.textContent = topic;
     startTimer(currentSession.started);
-    todoList.style.display = "block"; // Ensure todo list is visible
-    loadTodos();
 });
 
 // Stop Session
@@ -461,7 +483,6 @@ clockOutBtn.addEventListener("click", async () => {
         loadSessions(sessions);
         currentTopic.textContent = "";
         timer.textContent = "00:00:00";
-        todoList.style.display = "none";
     } catch (err) {
         console.error("Error saving session:", err);
         alert("Error saving session. Check console.");
