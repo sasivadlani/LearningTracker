@@ -111,6 +111,7 @@ body {
 
 #todoList ul li {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
     align-items: center;
     padding: 5px;
@@ -125,36 +126,40 @@ body {
 }
 
 #todoList ul li .form-check input[type="checkbox"] {
-    margin-right: 10px; /* Add some space between checkbox and text */
+    margin-right: 10px;
 }
 
 #todoList ul li .form-check input[type="text"] {
-    flex-grow: 1;
-    margin-right: 10px;
-    width: 100%; /* Ensure input width is appropriate */
-    white-space: normal; /* Allow text to wrap */
-    overflow: visible; /* Ensure text is not cut off */
+    width: 100%;
+    overflow: visible;
 }
 
-/* #todoList ul li .form-check button {
-    display: inline-block;
-    margin-left: 10px;
-    flex-shrink: 0;
-    width: auto;
-    visibility: visible;
-} */
-
-/* #todoList ul li button {
-    flex-shrink: 0; 
-} */
+#todoList ul li button {
+    margin-left: 0;
+    height: 1px;
+    width: 100%;
+}
 
 #todoItems {
     flex-grow: 0;
     display: flex;
     align-items: center;
-    justify-content: start;    width: 120px;
-    max-width: 100%; /* Ensure items do not exceed the container width */
+    justify-content: start;
+    max-width: 100%; 
 }
+
+#todoItems li:hover::after {
+    content: attr(data-full-text);
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    margin: 2px;
+    padding: 2px;
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 100%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
 
 #todoList ul li.checked {
     text-decoration: line-through;
@@ -203,6 +208,7 @@ body {
     #todoList ul li button {
         margin-left: 0;
         width: 100%;
+        height: 1px;
     }
 }
 
@@ -246,6 +252,7 @@ body {
 
     #todoList ul li button {
         margin-left: 0;
+        height: 1px;
         width: 100%;
     }
 }

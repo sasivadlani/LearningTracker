@@ -508,6 +508,7 @@ function loadTodos() {
     todoItems.innerHTML = "";
     todos.forEach((todo, index) => {
         const li = document.createElement("li");
+        li.setAttribute('data-full-text', todo.text);
         li.className = `list-group-item d-flex justify-content-between align-items-center ${todo.checked ? "checked" : ""}`;
         li.innerHTML = `
             <div class="form-check">
