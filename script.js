@@ -385,6 +385,12 @@ passwordInput.addEventListener("keypress", (e) => {
     }
 });
 
+newTodoInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        addTodoBtn.click();
+    }
+});
+
 // Logout Functionality
 document.getElementById("logoutBtn").addEventListener("click", async () => {
     if (currentSession.started) {
