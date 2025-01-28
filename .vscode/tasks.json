@@ -4,7 +4,7 @@
         {
             "label": "Replace AWSKeys and db for Testing",
             "type": "process",
-            "command": "${command:python.interpreterPath}",
+            "command": "/opt/homebrew/opt/python@3.13/bin/python3.13",
             "args": [
                 "${workspaceFolder}/Testing.py"
             ],
@@ -18,7 +18,7 @@
         {
             "label": "Replace AWSKeys and db for Deployment",
             "type": "process",
-            "command": "${command:python.interpreterPath}",
+            "command": "/opt/homebrew/opt/python@3.13/bin/python3.13",
             "args": [
                 "${workspaceFolder}/Deployment.py"
             ],
