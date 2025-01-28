@@ -29,6 +29,7 @@ const todoItems = document.getElementById("todoItems");
 // Global Variables
 let currentSession = {};
 let sessions = [];
+let todos = [];
 let userId = "userid"; // Replace with your unique user ID
 let interval = null; // Timer interval
 
@@ -64,53 +65,56 @@ function stopTimer() {
     interval = null;
 }
 
-function saveToLocalStorage() {
-    localStorage.setItem("isLoggedIn", true);
-    localStorage.setItem("userId", userId);
-    localStorage.setItem("currentSession", JSON.stringify(currentSession));
-    localStorage.setItem("sessions", JSON.stringify(sessions));
-}
+async function loadUserData() {
+    const params = {
+        TableName: "LearningTracker",
+        Key: { userId }
+    };
 
-function loadFromLocalStorage() {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (isLoggedIn) {
-        userId = localStorage.getItem("userId");
-        currentSession = JSON.parse(localStorage.getItem("currentSession")) || [];
-        sessions = JSON.parse(localStorage.getItem("sessions")) || [];
+    try {
+        const data = await docClient.get(params).promise();
+        if (data.Item) {
+            sessions = data.Item.sessions || [];
+            todos = data.Item.todos || [];
+            currentSession = data.Item.currentSession || {};
 
-        // Fetch sessions and todos from DynamoDB
-        const params = {
-            TableName: "LearningTracker",
-            Key: { userId }
-        };
-
-        docClient.get(params, (err, data) => {
-            if (err) {
-                console.error("Error fetching data from DynamoDB:", err);
-            } else {
-                sessions = data.Item.sessions || [];
-                const todos = data.Item.todos || [];
-                if (currentSession.started) {
-                    clockInBtn.disabled = true;
-                    clockOutBtn.disabled = false;
-                    currentTopic.textContent = currentSession.topic;
-                    startTimer(currentSession.started);
-                }
-                loadSessions(sessions);
-                passwordPrompt.style.display = "none";
-                mainContent.style.display = "block";
-                todoList.classList.remove("d-none"); // Ensure todo list is visible
-                loadTodos(todos);
+            if (currentSession.started) {
+                clockInBtn.disabled = true;
+                clockOutBtn.disabled = false;
+                currentTopic.textContent = currentSession.topic;
+                startTimer(currentSession.started);
             }
-        });
+            
+            loadSessions(sessions);
+            passwordPrompt.style.display = "none";
+            mainContent.style.display = "block";
+            todoList.classList.remove("d-none");
+            loadTodos(todos);
+            sessionStorage.setItem("loggedIn", "true"); // Set logged-in state
+        }
+    } catch (err) {
+        console.error("Error loading data:", err);
     }
 }
 
-function clearLocalStorage() {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("currentSession");
-    localStorage.removeItem("sessions");
+async function saveUserData() {
+    const params = {
+        TableName: "LearningTracker",
+        Key: { userId },
+        UpdateExpression: "SET sessions = :sessions, todos = :todos, currentSession = :currentSession",
+        ExpressionAttributeValues: {
+            ":sessions": sessions,
+            ":todos": todos,
+            ":currentSession": currentSession
+        }
+    };
+
+    try {
+        await docClient.update(params).promise();
+    } catch (err) {
+        console.error("Error saving data:", err);
+        alert("Error saving data. Check console.");
+    }
 }
 
 function formatDateForDisplay(date) {
@@ -274,7 +278,6 @@ function loadSessions(sessions) {
 
             try {
                 await docClient.update(params).promise();
-                saveToLocalStorage(); // Update local storage
                 const openSections = getOpenSections();
                 loadSessions(sessions); // Reload the table
                 setOpenSections(openSections);
@@ -304,7 +307,6 @@ function loadSessions(sessions) {
                 return;
             }
             sessions.splice(index, 1); // Remove the session from the local array
-            saveToLocalStorage(); // Update local storage
 
             // Update DynamoDB
             const params = {
@@ -353,20 +355,20 @@ function setOpenSections(openSections) {
     });
 }
 
-// Save sessions and todos to DynamoDB
-function saveToDynamoDB() {
-    const params = {
-        TableName: "LearningTracker",
-        Key: { userId },
-        UpdateExpression: "SET sessions = :updatedSessions, todos = :updatedTodos",
-        ExpressionAttributeValues: {
-            ":updatedSessions": sessions,
-            ":updatedTodos": JSON.parse(localStorage.getItem("todos")) || []
-        }
-    };
+// // Save sessions and todos to DynamoDB
+// function saveToDynamoDB() {
+//     const params = {
+//         TableName: "LearningTracker",
+//         Key: { userId },
+//         UpdateExpression: "SET sessions = :updatedSessions, todos = :updatedTodos",
+//         ExpressionAttributeValues: {
+//             ":updatedSessions": sessions,
+//             ":updatedTodos": todos
+//         }
+//     };
 
-    return docClient.update(params).promise();
-}
+//     return docClient.update(params).promise();
+// }
 
 // Login Functionality
 submitPassword.addEventListener("click", async () => {
@@ -379,14 +381,7 @@ submitPassword.addEventListener("click", async () => {
     try {
         const data = await docClient.get(params).promise();
         if (data.Item && data.Item.password === password) {
-            sessions = data.Item.sessions || [];
-            const todos = data.Item.todos || [];
-            saveToLocalStorage(); // Save login state to localStorage
-            loadSessions(sessions);
-            passwordPrompt.style.display = "none";
-            mainContent.style.display = "block";
-            todoList.classList.remove("d-none"); // Ensure todo list is visible after login
-            loadTodos(todos);
+            await loadUserData();
         } else {
             alert("Invalid Password");
         }
@@ -421,29 +416,30 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
         currentSession.ended = Date.now();
         currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
         sessions.push(currentSession); // Add to sessions
-        saveToLocalStorage(); // Update localStorage
 
         try {
-            await saveToDynamoDB();
+            await saveUserData();
         } catch (err) {
             console.error("Error saving session on logout:", err);
         }
     }
 
-    // Clear everything on logout
-    clearLocalStorage();
+    // Reset state
+    currentSession = {};
+    sessions = [];
+    todos = [];
     stopTimer();
     mainContent.style.display = "none";
     passwordPrompt.style.display = "block";
     passwordInput.value = "";
     topicInput.value = "";
     timer.textContent = "00:00:00";
-    currentSession = {};
-    todoList.classList.add("d-none"); // Hide todo list on logout
+    todoList.classList.add("d-none");
+    sessionStorage.removeItem("loggedIn"); // Clear logged-in state
 });
 
 // Start Session
-clockInBtn.addEventListener("click", () => {
+clockInBtn.addEventListener("click", async () => {
     const topic = topicInput.value.trim();
     const specialCharPattern = /[^a-zA-Z0-9 &@,._-]/g;
 
@@ -465,7 +461,7 @@ clockInBtn.addEventListener("click", () => {
         date: new Date().toLocaleDateString()
     };
 
-    saveToLocalStorage(); // Save session state to localStorage
+    await saveUserData();
 
     clockInBtn.disabled = true;
     clockOutBtn.disabled = false;
@@ -488,9 +484,7 @@ clockOutBtn.addEventListener("click", async () => {
     sessions.push(currentSession);
     try {
         currentSession = {}; // Reset current session
-        saveToLocalStorage(); // Save updated state to localStorage
-
-        await saveToDynamoDB();
+        await saveUserData();
         loadSessions(sessions);
         currentTopic.textContent = "";
         timer.textContent = "00:00:00";
@@ -500,12 +494,13 @@ clockOutBtn.addEventListener("click", async () => {
     }
 });
 
-// Initialize the app by loading data from localStorage
-window.onload = () => {
-    loadFromLocalStorage();
+// Initialize the app by loading data from sessionStorage
+window.onload = async () => {
+    if (sessionStorage.getItem("loggedIn") === "true") {
+        await loadUserData();
+    }
     updateLocalTime();
     setInterval(updateLocalTime, 1000);
-    // loadTodos();
 };
 
 function updateLocalTime() {
@@ -513,8 +508,9 @@ function updateLocalTime() {
     localTimeElement.textContent = now.toLocaleTimeString();
 }
 
-function loadTodos(todos = JSON.parse(localStorage.getItem("todos")) || []) {
+function loadTodos(todoList) {
     todoItems.innerHTML = "";
+    todos = todoList;
     todos.forEach((todo, index) => {
         const li = document.createElement("li");
         li.setAttribute('data-full-text', todo.text);
@@ -530,32 +526,23 @@ function loadTodos(todos = JSON.parse(localStorage.getItem("todos")) || []) {
     });
 }
 
-function saveTodos(todos) {
-    localStorage.setItem("todos", JSON.stringify(todos));
-}
-
-function addTodo() {
+async function addTodo() {
     const todo = newTodoInput.value.trim();
     if (todo) {
-        const todos = JSON.parse(localStorage.getItem("todos")) || [];
-        todos.unshift({ text: todo, checked: false }); // Add new todo to the top
-        saveTodos(todos);
+        todos.unshift({ text: todo, checked: false });
+        await saveUserData();
         loadTodos(todos);
         newTodoInput.value = "";
-        saveToDynamoDB(); // Save todos to DynamoDB
     }
 }
 
-function deleteTodo(index) {
-    const todos = JSON.parse(localStorage.getItem("todos")) || [];
+async function deleteTodo(index) {
     todos.splice(index, 1);
-    saveTodos(todos);
+    await saveUserData();
     loadTodos(todos);
-    saveToDynamoDB(); // Save todos to DynamoDB
 }
 
-function toggleTodoCheck(index) {
-    const todos = JSON.parse(localStorage.getItem("todos")) || [];
+async function toggleTodoCheck(index) {
     todos[index].checked = !todos[index].checked;
     if (todos[index].checked) {
         const [checkedTodo] = todos.splice(index, 1);
@@ -566,9 +553,8 @@ function toggleTodoCheck(index) {
             todos.splice(firstUncheckedIndex, 0, checkedTodo);
         }
     }
-    saveTodos(todos);
+    await saveUserData();
     loadTodos(todos);
-    saveToDynamoDB(); // Save todos to DynamoDB
 }
 
 addTodoBtn.addEventListener("click", addTodo);
