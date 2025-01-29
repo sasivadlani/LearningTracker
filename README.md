@@ -24,17 +24,17 @@ Learning Tracker is a web application that allows users to track their learning 
 
 ## Project Structure
 
-- **index.html**: The main HTML file for the application.
-- **styles.css**: The CSS file for styling the application.
-- **script.js**: The JavaScript file containing the application logic.
-- **.github/workflows/jekyll-gh-pages.yml**: GitHub Actions workflow for deploying the site to GitHub Pages.
+- **index.html**: The main HTML file for the application
+- **styles.css**: The CSS file for styling the application
+- **script.js**: The JavaScript file containing the application logic
+- **.github/workflows/jekyll-gh-pages.yml**: GitHub Actions workflow for deploying the site to GitHub Pages
 
 ## Getting Started
 
 ### Prerequisites
 
-- AWS account with DynamoDB setup.
-- GitHub account for deploying to GitHub Pages.
+- AWS account with DynamoDB setup
+- GitHub account for deploying to GitHub Pages
 
 ### Installation
 
@@ -42,32 +42,47 @@ Learning Tracker is a web application that allows users to track their learning 
 2. Configure AWS:
    - Create a DynamoDB table named "LearningTracker"
    - Set up IAM user with appropriate DynamoDB permissions
-   - Update AWS credentials in script.js:
-   ```javascript
-   AWS.config.update({
-       region: "your-region",
-       accessKeyId: "your-access-key-id",
-       secretAccessKey: "your-secret-access-key"
-   });
-   ```
-3. Deploy using GitHub Pages:
-   - Enable GitHub Pages in repository settings
-   - Ensure jekyll-gh-pages workflow is configured
-   - Push changes to main branch
+   - Update AWS credentials in script.js
+3. Deploy using GitHub Pages or serve locally
+
+### Configuration
+
+Update the AWS configuration in script.js:
+
+```javascript
+AWS.config.update({
+    region: "your-region",
+    accessKeyId: "your-access-key-id",
+    secretAccessKey: "your-secret-access-key"
+});
+```
 
 ### Usage
 
-1. Open [index.html] in a web browser.
-2. Enter the password to log in.
-3. Use the "Clock In" and "Clock Out" buttons to track learning sessions.
-4. View and manage previous sessions in the session history table.
-5. Use the distraction list to manage and track distractions.
-6. Utilize the Pomodoro timer to stay focused with customizable work durations and notifications.
+1. Enter your user ID and password to log in
+2. Enter a topic and use "Clock In" to start tracking
+3. Use "Clock Out" when you're done with a session
+4. View your session history grouped by date
+5. Add and manage distractions in the todo list
+6. Use the Pomodoro timer to maintain focus:
+   - Set custom work duration
+   - Receive notifications when timer completes
+   - Start/reset timer as needed
+
+### Security Notes
+
+- Keep your AWS credentials secure
+- Don't commit credentials to version control
+- Use environment variables in production
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License

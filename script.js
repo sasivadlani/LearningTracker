@@ -1,3 +1,6 @@
+/**
+ * AWS Configuration and DynamoDB Setup
+ */
 // AWS Configuration
 AWS.config.update({
     region: "us-east-1", // Replace with your DynamoDB region
@@ -5,12 +8,16 @@ AWS.config.update({
     secretAccessKey: "AWS_SECRET_ACCESS_KEY" // Replace with your Secret Access Key
 });
 
-
 // DynamoDB Instance
 const docClient = new AWS.DynamoDB.DocumentClient();
 
+/**
+ * DOM Element References
+ * Get references to all HTML elements needed for the application
+ */
 // Elements from DOM
 const passwordInput = document.getElementById("passwordInput");
+const userIdInput = document.getElementById("userIdInput");
 const submitPassword = document.getElementById("submitPassword");
 const mainContent = document.getElementById("mainContent");
 const passwordPrompt = document.getElementById("passwordPrompt");
@@ -31,16 +38,22 @@ const workDurationInput = document.getElementById("workDuration");
 const pomodoroMinutes = document.getElementById("pomodoroMinutes");
 const pomodoroSeconds = document.getElementById("pomodoroSeconds");
 
+/**
+ * Global State Variables
+ * Track current session, todos, and timer states
+ */
 // Global Variables
 let currentSession = {};
 let sessions = [];
 let todos = [];
-let userId = "userid"; // Replace with your unique user ID
-let interval = null; // Timer interval
+let userId = null; 
+let interval = null; 
 let pomodoroTimer = null;
 let pomodoroTimeLeft = 0;
 
-// Helper Functions
+/**
+ * Time Formatting and Calculation Functions
+ */
 function formatTime(date) {
     return new Date(date).toLocaleTimeString(); // Format as HH:MM:SS AM/PM
 }
@@ -57,6 +70,9 @@ function calculateTotalTime(started, ended) {
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
+/**
+ * Timer Management Functions
+ */
 function startTimer(startedTime) {
     interval = setInterval(() => {
         elapsed = Math.floor((Date.now() - startedTime) / 1000);
@@ -72,7 +88,16 @@ function stopTimer() {
     interval = null;
 }
 
+/**
+ * Data Management Functions
+ * Handle loading and saving user data to DynamoDB
+ */
 async function loadUserData() {
+    if (!userId) {
+        console.error("No user ID available");
+        return;
+    }
+
     const params = {
         TableName: "LearningTracker",
         Key: { userId }
@@ -99,6 +124,7 @@ async function loadUserData() {
             document.getElementById("pomodoro").style.display = "block"; // Show Pomodoro timer
             loadTodos(todos);
             sessionStorage.setItem("loggedIn", "true"); // Set logged-in state
+            sessionStorage.setItem("userId", userId); // Store userId in session storage
         }
     } catch (err) {
         console.error("Error loading data:", err);
@@ -125,6 +151,10 @@ async function saveUserData() {
     }
 }
 
+/**
+ * Session Management Functions
+ * Handle displaying and managing learning sessions
+ */
 function formatDateForDisplay(date) {
     const options = { day: '2-digit', month: 'short', year: 'numeric', weekday: 'short' };
     return new Date(date).toLocaleDateString('en-GB', options);
@@ -363,32 +393,33 @@ function setOpenSections(openSections) {
     });
 }
 
-// // Save sessions and todos to DynamoDB
-// function saveToDynamoDB() {
-//     const params = {
-//         TableName: "LearningTracker",
-//         Key: { userId },
-//         UpdateExpression: "SET sessions = :updatedSessions, todos = :updatedTodos",
-//         ExpressionAttributeValues: {
-//             ":updatedSessions": sessions,
-//             ":updatedTodos": todos
-//         }
-//     };
-
-//     return docClient.update(params).promise();
-// }
-
+/**
+ * Authentication Functions
+ */
 // Login Functionality
 submitPassword.addEventListener("click", async () => {
+    const inputUserId = userIdInput.value;
     const password = passwordInput.value;
+
+    if (!inputUserId) {
+        alert("Please enter a User ID");
+        return;
+    }
+
     const params = {
         TableName: "LearningTracker",
-        Key: { userId }
+        Key: { userId: inputUserId }
     };
 
     try {
         const data = await docClient.get(params).promise();
-        if (data.Item && data.Item.password === password) {
+        if (!data.Item) {
+            alert("User ID not found");
+            return;
+        }
+
+        if (data.Item.password === password) {
+            userId = inputUserId; // Set the userId after successful login
             await loadUserData();
         } else {
             alert("Invalid Password");
@@ -448,8 +479,13 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
     sessionStorage.removeItem('pomodoroTimeLeft');
     sessionStorage.removeItem('pomodoroRunning');
     sessionStorage.removeItem('pomodoroDuration');
+    userId = null; // Clear userId
+    sessionStorage.removeItem("userId"); // Remove userId from session storage
 });
 
+/**
+ * Session Management Functions
+ */
 // Start Session
 clockInBtn.addEventListener("click", async () => {
     const topic = topicInput.value.trim();
@@ -506,7 +542,9 @@ clockOutBtn.addEventListener("click", async () => {
     }
 });
 
-// Add these functions before the window.onload function
+/**
+ * Pomodoro Timer Functions
+ */
 function startPomodoro() {
     if (pomodoroTimer) return;
     
@@ -562,61 +600,9 @@ function updatePomodoroDisplay() {
     pomodoroSeconds.textContent = seconds.toString().padStart(2, "0");
 }
 
-// Initialize the app by loading data from sessionStorage
-window.onload = async () => {
-    if (sessionStorage.getItem("loggedIn") === "true") {
-        await loadUserData();
-    }
-    updateLocalTime();
-    setInterval(updateLocalTime, 1000);
-    
-    // Restore pomodoro state
-    const savedTimeLeft = sessionStorage.getItem('pomodoroTimeLeft');
-    const isRunning = sessionStorage.getItem('pomodoroRunning');
-    const savedDuration = sessionStorage.getItem('pomodoroDuration');
-    
-    if (savedTimeLeft && isRunning) {
-        pomodoroTimeLeft = parseInt(savedTimeLeft);
-        workDurationInput.value = savedDuration;
-        updatePomodoroDisplay();
-        startPomodoroBtn.disabled = true;
-        workDurationInput.disabled = true;
-        
-        pomodoroTimer = setInterval(() => {
-            pomodoroTimeLeft--;
-            updatePomodoroDisplay();
-            sessionStorage.setItem('pomodoroTimeLeft', pomodoroTimeLeft);
-            
-            if (pomodoroTimeLeft <= 0) {
-                stopPomodoro();
-                new Notification("Pomodoro Timer", {
-                    body: "Time's up! Take a break!",
-                    icon: "favicon.ico"
-                });
-            }
-        }, 1000);
-    } else {
-        resetPomodoro();
-    }
-};
-
-// Add these event listeners after other event listeners
-startPomodoroBtn.addEventListener("click", () => {
-    // Request notification permission if needed
-    if (Notification.permission === "default") {
-        Notification.requestPermission();
-    }
-    startPomodoro();
-});
-
-resetPomodoroBtn.addEventListener("click", resetPomodoro);
-
-workDurationInput.addEventListener("change", () => {
-    if (!pomodoroTimer) {
-        resetPomodoro();
-    }
-});
-
+/**
+ * Todo List Management Functions
+ */
 function updateLocalTime() {
     const now = new Date();
     localTimeElement.textContent = now.toLocaleTimeString();
@@ -671,4 +657,67 @@ async function toggleTodoCheck(index) {
     loadTodos(todos);
 }
 
+/**
+ * Event Listeners
+ */
 addTodoBtn.addEventListener("click", addTodo);
+
+// Add these event listeners after other event listeners
+startPomodoroBtn.addEventListener("click", () => {
+    // Request notification permission if needed
+    if (Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+    startPomodoro();
+});
+
+resetPomodoroBtn.addEventListener("click", resetPomodoro);
+
+workDurationInput.addEventListener("change", () => {
+    if (!pomodoroTimer) {
+        resetPomodoro();
+    }
+});
+
+/**
+ * Application Initialization
+ */
+window.onload = async () => {
+    if (sessionStorage.getItem("loggedIn") === "true") {
+        userId = sessionStorage.getItem("userId"); // Restore userId
+        if (userId) {
+            await loadUserData();
+        }
+    }
+    updateLocalTime();
+    setInterval(updateLocalTime, 1000);
+    
+    // Restore pomodoro state
+    const savedTimeLeft = sessionStorage.getItem('pomodoroTimeLeft');
+    const isRunning = sessionStorage.getItem('pomodoroRunning');
+    const savedDuration = sessionStorage.getItem('pomodoroDuration');
+    
+    if (savedTimeLeft && isRunning) {
+        pomodoroTimeLeft = parseInt(savedTimeLeft);
+        workDurationInput.value = savedDuration;
+        updatePomodoroDisplay();
+        startPomodoroBtn.disabled = true;
+        workDurationInput.disabled = true;
+        
+        pomodoroTimer = setInterval(() => {
+            pomodoroTimeLeft--;
+            updatePomodoroDisplay();
+            sessionStorage.setItem('pomodoroTimeLeft', pomodoroTimeLeft);
+            
+            if (pomodoroTimeLeft <= 0) {
+                stopPomodoro();
+                new Notification("Pomodoro Timer", {
+                    body: "Time's up! Take a break!",
+                    icon: "favicon.ico"
+                });
+            }
+        }, 1000);
+    } else {
+        resetPomodoro();
+    }
+};
