@@ -1,23 +1,26 @@
 # Learning Tracker
 
-Learning Tracker is a web application that allows users to track their learning sessions. Users can log in with a password, clock in and out of learning sessions, and view their session history. The application uses AWS DynamoDB to store session data.
+Learning Tracker is a web application that allows users to track their learning sessions, manage distractions, and stay focused using a Pomodoro timer. The application uses AWS DynamoDB for data persistence.
 
 ## Features
 
-- **Login**: Secure single user login with a password.
-- **Clock In/Clock Out**: Track the start and end times of learning sessions.
-- **Session History**: View and manage previous learning sessions with date filtering.
-- **Distraction List**: Manage a list of distractions to stay focused.
-- **AWS Integration**: Store session data in AWS DynamoDB with automatic sync.
-- **Comment System**: Add and edit comments for each learning session.
-- **Responsive Design**: Works on both desktop and mobile devices.
+- **Login**: Secure single user login with a password
+- **Clock In/Clock Out**: Track the start and end times of learning sessions
+- **Session History**: View and manage previous learning sessions with collapsible date-based grouping
+- **Distraction List**: Manage a list of distractions to stay focused
+- **Pomodoro Timer**: Built-in timer with customizable work duration and notifications
+- **AWS Integration**: Store session data in AWS DynamoDB with automatic sync
+- **Comment System**: Add and edit comments for each learning session
+- **Responsive Design**: Works on both desktop and mobile devices
 
-## Technical Details
+## Technical Features
 
-- Uses AWS SDK for browser-based DynamoDB operations
-- Implements session persistence using sessionStorage
-- Supports real-time updates and automatic data syncing
-- Features collapsible date-based session grouping
+- Real-time timer updates for both learning sessions and Pomodoro timer
+- Session state persistence using sessionStorage
+- Automatic data syncing with DynamoDB
+- Browser notifications for Pomodoro timer completion
+- Mobile-responsive table layouts with horizontal scrolling
+- Collapsible session history grouped by date
 
 ## Project Structure
 
@@ -59,6 +62,7 @@ Learning Tracker is a web application that allows users to track their learning 
 3. Use the "Clock In" and "Clock Out" buttons to track learning sessions.
 4. View and manage previous sessions in the session history table.
 5. Use the distraction list to manage and track distractions.
+6. Utilize the Pomodoro timer to stay focused with customizable work durations and notifications.
 
 ## Contributing
 
