@@ -15,12 +15,15 @@ body {
     background: #fff;
     padding: 20px;
     margin-top: 20px;
+    margin-bottom: 20px;
+
     border-radius: 5px;
 }
 
 #RightContent {
     flex-basis: 10%;
-    margin-top: 20px; /* Match the margin-top of #currentSession */
+    /* margin-top: 20px;  */
+    padding-right: 10px;
 }
 
 #timer {
@@ -86,6 +89,7 @@ body {
 
 #clockInOut {
     margin-top: 1rem;
+    margin-bottom: 1rem;
 }
 
 #currentSession {
@@ -97,11 +101,13 @@ body {
 }
 
 #todoList {
-    margin-top: 150px;
+    margin-top: 160px;
+    margin-left: 5px;
     background: #fff;
-    padding: 20px;
+    padding: 10px;
     border-radius: 5px;
     overflow: auto; /* Changed from hidden to auto */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 #todoList ul {
@@ -210,6 +216,14 @@ body {
         width: 100%;
         height: 1px;
     }
+
+    .pomodoro-timer {
+        font-size: 25px;
+    }
+
+    .pomodoro-controls {
+        flex-wrap: wrap;
+    }
 }
 
 @media (max-width: 480px) {
@@ -254,6 +268,14 @@ body {
         margin-left: 0;
         height: 1px;
         width: 100%;
+    }
+
+    .pomodoro-timer {
+        font-size: 28px;
+    }
+
+    .timer-type-buttons {
+        flex-wrap: wrap;
     }
 }
 
@@ -497,4 +519,79 @@ table td.actions.editing {
     top: 0;
     background-color: #fff;
     z-index: 1;
+}
+
+/* Pomodoro Timer Styles */
+#pomodoro {
+    display: none; /* Hide Pomodoro timer initially */
+    margin-top: 160px;
+    background: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    /* width: 100%; */
+}
+
+.timer-display {
+    font-family: 'Roboto Mono', monospace;
+    color: #333;
+    /* margin: 20px 0; */
+}
+
+.timer-display span {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.timer-buttons button {
+    /* width: 48%;
+    height: 40px; */
+    margin: 5px;
+    border-radius: 5px;
+}
+
+.timer-settings {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+/* .timer-settings .form-group {
+    margin-bottom: 15px;
+} */
+
+.timer-settings input {
+    text-align: center;
+    font-size: 1.1rem;
+    /* max-width: 100px; */
+    /* margin: 0 auto; */
+}
+
+.timer-settings label {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 992px) {
+    #pomodoro {
+        margin-top: 20px;
+        order: 3;
+    }
+}
+
+@media (max-width: 768px) {
+    .timer-display span {
+        font-size: 2rem;
+        min-width: 50px;
+    }
+
+    .timer-buttons button {
+        width: 50px;
+        height: 50px;
+    }
+
+    .timer-buttons button i {
+        font-size: 20px;
+    }
 }
