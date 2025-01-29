@@ -445,6 +445,9 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
     timer.textContent = "00:00:00";
     todoList.classList.add("d-none");
     sessionStorage.removeItem("loggedIn"); // Clear logged-in state
+    sessionStorage.removeItem('pomodoroTimeLeft');
+    sessionStorage.removeItem('pomodoroRunning');
+    sessionStorage.removeItem('pomodoroDuration');
 });
 
 // Start Session
@@ -513,9 +516,15 @@ function startPomodoro() {
     startPomodoroBtn.disabled = true;
     workDurationInput.disabled = true;
     
+    // Save state when starting
+    sessionStorage.setItem('pomodoroTimeLeft', pomodoroTimeLeft);
+    sessionStorage.setItem('pomodoroRunning', 'true');
+    sessionStorage.setItem('pomodoroDuration', duration);
+    
     pomodoroTimer = setInterval(() => {
         pomodoroTimeLeft--;
         updatePomodoroDisplay();
+        sessionStorage.setItem('pomodoroTimeLeft', pomodoroTimeLeft);
         
         if (pomodoroTimeLeft <= 0) {
             stopPomodoro();
@@ -532,6 +541,7 @@ function stopPomodoro() {
     pomodoroTimer = null;
     startPomodoroBtn.disabled = false;
     workDurationInput.disabled = false;
+    sessionStorage.removeItem('pomodoroRunning');
 }
 
 function resetPomodoro() {
@@ -539,6 +549,10 @@ function resetPomodoro() {
     const duration = parseInt(workDurationInput.value) || 60;
     pomodoroTimeLeft = duration * 60;
     updatePomodoroDisplay();
+    // Clear timer state from storage
+    sessionStorage.removeItem('pomodoroTimeLeft');
+    sessionStorage.removeItem('pomodoroRunning');
+    sessionStorage.removeItem('pomodoroDuration');
 }
 
 function updatePomodoroDisplay() {
@@ -555,7 +569,35 @@ window.onload = async () => {
     }
     updateLocalTime();
     setInterval(updateLocalTime, 1000);
-    resetPomodoro(); // Initialize pomodoro display
+    
+    // Restore pomodoro state
+    const savedTimeLeft = sessionStorage.getItem('pomodoroTimeLeft');
+    const isRunning = sessionStorage.getItem('pomodoroRunning');
+    const savedDuration = sessionStorage.getItem('pomodoroDuration');
+    
+    if (savedTimeLeft && isRunning) {
+        pomodoroTimeLeft = parseInt(savedTimeLeft);
+        workDurationInput.value = savedDuration;
+        updatePomodoroDisplay();
+        startPomodoroBtn.disabled = true;
+        workDurationInput.disabled = true;
+        
+        pomodoroTimer = setInterval(() => {
+            pomodoroTimeLeft--;
+            updatePomodoroDisplay();
+            sessionStorage.setItem('pomodoroTimeLeft', pomodoroTimeLeft);
+            
+            if (pomodoroTimeLeft <= 0) {
+                stopPomodoro();
+                new Notification("Pomodoro Timer", {
+                    body: "Time's up! Take a break!",
+                    icon: "favicon.ico"
+                });
+            }
+        }, 1000);
+    } else {
+        resetPomodoro();
+    }
 };
 
 // Add these event listeners after other event listeners
