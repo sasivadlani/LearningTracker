@@ -267,11 +267,23 @@ function loadSessions(sessions) {
         btn.addEventListener("click", (e) => {
             const index = e.target.dataset.sessionIndex;
             const row = sessionsContainer.querySelector(`tr[data-session-index="${index}"]`);
-            row.querySelectorAll(".edit-input").forEach(input => input.disabled = false);
+            const inputs = row.querySelectorAll(".edit-input");
+            
+            inputs.forEach(input => {
+                input.disabled = false;
+                // Add keypress event listener for Enter key
+                input.addEventListener("keypress", async (e) => {
+                    if (e.key === "Enter") {
+                        const saveBtn = row.querySelector(".save-btn");
+                        saveBtn.click(); // Trigger save button click
+                    }
+                });
+            });
+            
             row.querySelector(".edit-btn").style.display = "none";
             row.querySelector(".save-btn").style.display = "inline-block";
             row.querySelector(".cancel-btn").style.display = "inline-block";
-            row.querySelector(".actions").classList.add("editing"); // Add class to expand actions column
+            row.querySelector(".actions").classList.add("editing");
         });
     });
 
