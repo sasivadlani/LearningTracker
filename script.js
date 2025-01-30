@@ -161,16 +161,23 @@ function formatDateForDisplay(date) {
 }
 
 function toggleCommentDisplay(event) {
-    const commentCell = event.currentTarget.closest('.comment-cell');
+    const row = event.currentTarget.closest('tr');
+    const commentCell = row.querySelector('.comment-cell');
+    const topicCell = row.querySelector('.topic-cell');
+    
     const commentInput = commentCell.querySelector(".comment-input");
     const commentTextarea = commentCell.querySelector(".comment-textarea");
-    if (commentInput.disabled) {
-        if (commentTextarea.style.display === "none" || !commentTextarea.style.display) {
-            commentTextarea.style.display = "block";
-            commentTextarea.value = commentInput.value;
-        } else {
-            commentTextarea.style.display = "none";
-        }
+    const topicInput = topicCell.querySelector(".edit-input");
+    const topicTextarea = topicCell.querySelector(".topic-textarea");
+
+    if (commentInput.disabled && topicInput.disabled) {
+        // Toggle both textareas
+        const isHidden = commentTextarea.style.display === "none" || !commentTextarea.style.display;
+        commentTextarea.style.display = isHidden ? "block" : "none";
+        topicTextarea.style.display = isHidden ? "block" : "none";
+        
+        commentTextarea.value = commentInput.value;
+        topicTextarea.value = topicInput.value;
     }
 }
 
@@ -216,7 +223,10 @@ function loadSessions(sessions) {
                     <tbody>
                         ${sessionsByDate[date].map((session, index) => `
                             <tr data-session-index="${sessions.indexOf(session)}">
-                                <td><input type="text" class="edit-input" value="${session.topic}" disabled /></td>
+                                <td class="topic-cell">
+                                    <input type="text" class="edit-input" value="${session.topic}" disabled />
+                                    <textarea class="topic-textarea" readonly></textarea>
+                                </td>
                                 <td><input type="text" class="edit-input" value="${formatTime(session.started)}" disabled /></td>
                                 <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
                                 <td>${session.totalTime}</td>
@@ -369,7 +379,7 @@ function loadSessions(sessions) {
     });
 
     // Add event listener for comment cells and inputs
-    document.querySelectorAll(".comment-cell, .comment-input").forEach(element => {
+    document.querySelectorAll(".comment-cell, .topic-cell").forEach(element => {
         element.addEventListener("click", toggleCommentDisplay);
     });
 }

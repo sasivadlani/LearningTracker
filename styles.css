@@ -413,6 +413,22 @@ table td.actions.editing {
     cursor: pointer;
 }
 
+.topic-cell {
+    cursor: pointer;
+}
+
+.topic-textarea {
+    display: none;
+    width: 100%;
+    height: auto;
+    border: none;
+    resize: none;
+    background: transparent;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
 /* Add new responsive layout styles */
 @media (max-width: 992px) {
     .container-fluid {
