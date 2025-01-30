@@ -450,18 +450,36 @@ topicInput.addEventListener("keypress", (e) => {
 
 // Logout Functionality
 document.getElementById("logoutBtn").addEventListener("click", async () => {
+    // Stop Pomodoro timer if running
+    if (pomodoroTimer) {
+        clearInterval(pomodoroTimer);
+        pomodoroTimer = null;
+        pomodoroTimeLeft = 3600;
+        updatePomodoroDisplay();
+    }
+
     if (currentSession.started) {
-        // Stop the current session
+        stopTimer();
         currentSession.ended = Date.now();
         currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
-        sessions.push(currentSession); // Add to sessions
+        sessions.push({ ...currentSession });
 
         try {
+            currentSession = {};
             await saveUserData();
         } catch (err) {
             console.error("Error saving session on logout:", err);
         }
     }
+
+    // Reset UI elements
+    clockInBtn.disabled = false;
+    clockOutBtn.disabled = true;
+    currentTopic.textContent = "";
+    timer.textContent = "00:00:00";
+    startPomodoroBtn.disabled = false;
+    workDurationInput.disabled = false;
+    workDurationInput.value = "60";
 
     // Reset state
     currentSession = {};
@@ -470,17 +488,14 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
     stopTimer();
     mainContent.style.display = "none";
     passwordPrompt.style.display = "block";
-    document.getElementById("pomodoro").style.display = "none"; // Show Pomodoro timer
+    document.getElementById("pomodoro").style.display = "none";
     passwordInput.value = "";
     topicInput.value = "";
-    timer.textContent = "00:00:00";
     todoList.classList.add("d-none");
-    sessionStorage.removeItem("loggedIn"); // Clear logged-in state
-    sessionStorage.removeItem('pomodoroTimeLeft');
-    sessionStorage.removeItem('pomodoroRunning');
-    sessionStorage.removeItem('pomodoroDuration');
-    userId = null; // Clear userId
-    sessionStorage.removeItem("userId"); // Remove userId from session storage
+
+    // Clear all session storage
+    sessionStorage.clear();
+    userId = null;
 });
 
 /**
@@ -489,7 +504,7 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 // Start Session
 clockInBtn.addEventListener("click", async () => {
     const topic = topicInput.value.trim();
-    const specialCharPattern = /[^a-zA-Z0-9 &@,._-]/g;
+    const specialCharPattern = /[^a-zA-Z0-9 &@,._:-]/g;
 
     if (!topic) {
         return alert("Please enter a topic!");
@@ -514,6 +529,7 @@ clockInBtn.addEventListener("click", async () => {
     clockInBtn.disabled = true;
     clockOutBtn.disabled = false;
     currentTopic.textContent = topic;
+    topicInput.value = ""; // Clear the topic input
     startTimer(currentSession.started);
 });
 
