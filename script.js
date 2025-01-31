@@ -122,6 +122,7 @@ async function loadUserData() {
             mainContent.style.display = "block";
             todoList.classList.remove("d-none");
             document.getElementById("pomodoro").style.display = "block"; // Show Pomodoro timer
+            document.getElementById("weeklyStats").style.display = "block"; // Show Weekly Stats
             loadTodos(todos);
             sessionStorage.setItem("loggedIn", "true"); // Set logged-in state
             sessionStorage.setItem("userId", userId); // Store userId in session storage
@@ -394,6 +395,7 @@ function loadSessions(sessions) {
     document.querySelectorAll(".comment-cell, .topic-cell").forEach(element => {
         element.addEventListener("click", toggleCommentDisplay);
     });
+    updateCategoryChart();
 }
 
 function getOpenSections() {
@@ -511,6 +513,7 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
     mainContent.style.display = "none";
     passwordPrompt.style.display = "block";
     document.getElementById("pomodoro").style.display = "none";
+    document.getElementById("weeklyStats").style.display = "none";
     passwordInput.value = "";
     topicInput.value = "";
     todoList.classList.add("d-none");
@@ -572,6 +575,7 @@ clockOutBtn.addEventListener("click", async () => {
         currentSession = {}; // Reset current session
         await saveUserData();
         loadSessions(sessions);
+        updateCategoryChart(); 
         currentTopic.textContent = "";
         timer.textContent = "00:00:00";
     } catch (err) {
@@ -759,3 +763,76 @@ window.onload = async () => {
         resetPomodoro();
     }
 };
+
+// Load Google Charts
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback(updateCategoryChart);
+
+function getWeekDateRange() {
+    const now = new Date();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+    monday.setHours(0, 0, 0, 0);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    return { start: monday, end: sunday };
+}
+
+function calculateWeeklyGroupTimes() {
+    const { start, end } = getWeekDateRange();
+    const groupTimes = {};
+
+    // Filter sessions within the current week
+    const weekSessions = sessions.filter(session => {
+        const sessionDate = new Date(session.started);
+        return sessionDate >= start && sessionDate <= end;
+    });
+
+    weekSessions.forEach(session => {
+        const group = session.topic.split(':')[0].trim();
+        const duration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60); // Duration in hours
+
+        groupTimes[group] = (groupTimes[group] || 0) + duration;
+    });
+
+    return groupTimes;
+}
+
+function updateCategoryChart() {
+    const groupTimes = calculateWeeklyGroupTimes();
+    
+    const data = new google.visualization.DataTable();
+    data.addColumn('string', 'Category');
+    data.addColumn('number', 'Hours');
+    
+    Object.entries(groupTimes).forEach(([category, hours]) => {
+        data.addRow([`${category}`, hours]);
+    });
+
+    const options = {
+        // pieHole: 0.7,
+        height: 200,
+        width: 180,
+        legend: { 
+            position: 'none'
+        },
+        chartArea: { 
+            width: '90%',
+            height: '90%',
+            backgroundColor: {
+                fill: '#333'
+            }
+        },
+        is3D: true,
+        pieSliceText: 'label',
+        pieSliceTextStyle: {
+            color: 'black'
+        }
+    };
+
+    const chart = new google.visualization.PieChart(document.getElementById('categoryChart'));
+    chart.draw(data, options);
+}
