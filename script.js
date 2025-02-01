@@ -1076,7 +1076,9 @@ function updateDailyStudyChart() {
     // Add rows for each date
     last7Dates.forEach(date => {
         const groupsData = dailyStudyTime[date] || {};
-        const row = [date];
+        const dateObj = new Date(date);
+        const formattedDate = `${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleDateString('en-GB')}`;
+        const row = [formattedDate];
         let totalHours = 0;
         groups.forEach(group => {
             const hours = groupsData[group] || 0;
@@ -1089,7 +1091,11 @@ function updateDailyStudyChart() {
 
     const options = {
         title: 'Daily Study Time',
-        hAxis: { title: 'Date' },
+        hAxis: { 
+            title: 'Date',
+            slantedText: true,
+            slantedTextAngle: 45
+        },
         vAxis: { title: 'Hours' },
         legend: { position: 'none' },
         height: 400,
