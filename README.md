@@ -6,6 +6,7 @@ A web-based application for tracking learning sessions and managing study time w
 
 ### Core Features
 - Secure login system with user authentication
+- Set, Delete Weekly Goals 
 - Clock In/Out functionality to track learning sessions
 - Topic-based session tracking
 - Detailed session history with date grouping
@@ -57,11 +58,12 @@ AWS.config.update({
 ### Usage
 
 1. Enter your user ID and password to log in
-2. Enter a topic and use "Clock In" to start tracking
-3. Use "Clock Out" when you're done with a session
-4. View your session history grouped by date
-5. Add and manage distractions in the todo list
-6. Use the Pomodoro timer to maintain focus:
+2. Set, Delete Goals and track progress for the week
+3. Enter a topic and use "Clock In" to start tracking
+4. Use "Clock Out" when you're done with a session
+5. View your session history grouped by date
+6. Add and manage distractions in the todo list
+7. Use the Pomodoro timer to maintain focus:
    - Set custom work duration
    - Receive notifications when timer completes
    - Start/reset timer as needed
