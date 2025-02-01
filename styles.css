@@ -310,7 +310,26 @@ table td.actions.editing {
     word-wrap: break-word;
 }
 
+.month-collapsible {
+    background-color: #d0d0d0;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
 
+.date-collapsible {
+    margin-left: 20px;
+    width: calc(100% - 20px);
+    background-color: #e0e0e0;
+}
+
+.month-collapsible + .collapsible-content {
+    margin-bottom: 15px;
+}
+
+.date-collapsible + .collapsible-content {
+    margin-left: 20px;
+    width: calc(100% - 20px);
+}
 
 /* Add sticky header for tables */
 .table thead th {

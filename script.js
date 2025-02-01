@@ -181,81 +181,97 @@ function toggleCommentDisplay(event) {
 // Load sessions from DynamoDB
 function loadSessions(sessions) {
     const sessionsContainer = document.getElementById("sessionsContainer");
-    sessionsContainer.innerHTML = ""; // Clear the container
+    sessionsContainer.innerHTML = "";
 
-    const sessionsByDate = sessions.reduce((acc, session) => {
-        const date = formatDateForDisplay(session.date);
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(session);
+    // Group sessions by month and date
+    const sessionsByMonth = sessions.reduce((acc, session) => {
+        const date = new Date(session.date);
+        const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+        const dateKey = formatDateForDisplay(session.date);
+        
+        if (!acc[monthKey]) {
+            acc[monthKey] = {
+                monthName: date.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+                dates: {}
+            };
+        }
+        if (!acc[monthKey].dates[dateKey]) {
+            acc[monthKey].dates[dateKey] = [];
+        }
+        acc[monthKey].dates[dateKey].push(session);
         return acc;
     }, {});
 
-    // Sort dates from newest to oldest
-    const sortedDates = Object.keys(sessionsByDate).sort((a, b) => new Date(b) - new Date(a));
+    // Sort months from newest to oldest
+    const sortedMonths = Object.keys(sessionsByMonth).sort((a, b) => b.localeCompare(a));
 
-    sortedDates.forEach(date => {
-        // Sort sessions within each date from newest to oldest
-        sessionsByDate[date].sort((a, b) => new Date(b.started) - new Date(a.started));
+    sortedMonths.forEach(monthKey => {
+        const monthData = sessionsByMonth[monthKey];
+        const monthSection = document.createElement("div");
+        const isCurrentMonth = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }) === monthData.monthName;
 
-        const dateSection = document.createElement("div");
-        const isToday = date === formatDateForDisplay(new Date());
-
-        dateSection.innerHTML = `
-            <button class="collapsible" ${isToday ? 'class="active"' : ''}>
-                ${date}
+        // Create month-level collapsible
+        monthSection.innerHTML = `
+            <button class="collapsible month-collapsible ${isCurrentMonth ? 'active' : ''}">
+                ${monthData.monthName}
                 <span class="icon">></span>
             </button>
-            <div class="collapsible-content" style="${isToday ? 'display:block;' : ''}">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th class="topic">Topic</th>
-                            <th class="started">Started</th>
-                            <th class="ended">Ended</th>
-                            <th class="totalTime">Total Time</th>
-                            <th class="comment">Comment</th>
-                            <th class="actions">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${sessionsByDate[date].map((session, index) => `
-                            <tr data-session-index="${sessions.indexOf(session)}">
-                                <td class="topic-cell">
-                                    <input type="text" class="edit-input" value="${session.topic}" disabled />
-                                    <textarea class="topic-textarea" readonly></textarea>
-                                </td>
-                                <td><input type="text" class="edit-input" value="${formatTime(session.started)}" disabled /></td>
-                                <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
-                                <td>${session.totalTime}</td>
-                                <td class="comment-cell">
-                                    <input type="text" class="edit-input comment-input" value="${session.comment || ''}" disabled />
-                                    <textarea class="comment-textarea" readonly></textarea>
-                                </td>
-                                <td class="actions">
-                                    <button class="edit-btn btn btn-primary" data-session-index="${sessions.indexOf(session)}">Edit</button>
-                                    <button class="save-btn btn btn-success" data-session-index="${sessions.indexOf(session)}" style="display: none;">Save</button>
-                                    <button class="cancel-btn btn btn-secondary" data-session-index="${sessions.indexOf(session)}" style="display: none;">Cancel</button>
-                                    <button class="delete-btn btn btn-danger" data-session-index="${sessions.indexOf(session)}">Delete</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+            <div class="collapsible-content" style="${isCurrentMonth ? 'display:block;' : 'display:none;'}">
+                ${Object.entries(monthData.dates).sort((a, b) => new Date(b[0]) - new Date(a[0])).map(([date, dateSessions]) => `
+                    <button class="collapsible date-collapsible ${isCurrentMonth ? 'active' : ''}">
+                        ${date}
+                        <span class="icon">></span>
+                    </button>
+                    <div class="collapsible-content" style="${isCurrentMonth ? 'display:block;' : 'display:none;'}">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="topic">Topic</th>
+                                    <th class="started">Started</th>
+                                    <th class="ended">Ended</th>
+                                    <th class="totalTime">Total Time</th>
+                                    <th class="comment">Comment</th>
+                                    <th class="actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${dateSessions.map((session, index) => `
+                                    <tr data-session-index="${sessions.indexOf(session)}">
+                                        <td class="topic-cell">
+                                            <input type="text" class="edit-input" value="${session.topic}" disabled />
+                                            <textarea class="topic-textarea" readonly></textarea>
+                                        </td>
+                                        <td><input type="text" class="edit-input" value="${formatTime(session.started)}" disabled /></td>
+                                        <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
+                                        <td>${session.totalTime}</td>
+                                        <td class="comment-cell">
+                                            <input type="text" class="edit-input comment-input" value="${session.comment || ''}" disabled />
+                                            <textarea class="comment-textarea" readonly></textarea>
+                                        </td>
+                                        <td class="actions">
+                                            <button class="edit-btn btn btn-primary" data-session-index="${sessions.indexOf(session)}">Edit</button>
+                                            <button class="save-btn btn btn-success" data-session-index="${sessions.indexOf(session)}" style="display: none;">Save</button>
+                                            <button class="cancel-btn btn btn-secondary" data-session-index="${sessions.indexOf(session)}" style="display: none;">Cancel</button>
+                                            <button class="delete-btn btn btn-danger" data-session-index="${sessions.indexOf(session)}">Delete</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `).join('')}
             </div>
         `;
-        sessionsContainer.appendChild(dateSection);
+        sessionsContainer.appendChild(monthSection);
     });
 
-    // Add collapsible functionality
-    document.querySelectorAll(".collapsible").forEach(button => {
-        button.addEventListener("click", function () {
+    // Add collapsible functionality for both month and date levels
+    document.querySelectorAll(".month-collapsible, .date-collapsible").forEach(button => {
+        button.addEventListener("click", function(e) {
+            e.stopPropagation();
             this.classList.toggle("active");
             const content = this.nextElementSibling;
-            if (content.style.display === "block") {
-                content.style.display = "none";
-            } else {
-                content.style.display = "block";
-            }
+            content.style.display = content.style.display === "block" ? "none" : "block";
         });
     });
 
