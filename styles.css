@@ -102,7 +102,7 @@ body {
     margin-top: 165px;
     background: #fff;
     padding: 10px;
-    width: 200px;
+    min-width: 220px;
     border-radius: 5px;
     overflow: auto;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -320,70 +320,27 @@ table td.actions.editing {
     z-index: 1;
 }
 
-/* Pomodoro Timer Styles */
-#pomodoro {
-    display: none; 
-    margin-top: 165px;
-    background: #fff;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    width: 100%;
-}
-
-.timer-display {
-    font-family: 'Roboto Mono', monospace;
-    color: #333;
-    /* margin: 20px 0; */
-}
-
-.timer-display span {
-    font-size: 1.25rem;
-    font-weight: bold;
-}
-
-.timer-buttons button {
-    /* width: 48%;
-    height: 40px; */
-    margin: 5px;
-    border-radius: 5px;
-}
-
-.timer-settings {
-    border-top: 1px solid #eee;
-    padding-top: 10px;
-}
-
-
-.timer-settings input {
-    text-align: center;
-    font-size: 1.1rem;
-}
-
-.timer-settings label {
-    display: block;
-    margin-top: 5px;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-
-
-
 /* Weekly Stats Styles */
 #weeklyStats {
     display: none;
-    margin: 10px auto;
+    /* margin: 10px auto; */
     background: #fff;
     padding: 10px;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    width: 200px;
+    width: auto;
+    height: auto;
     margin-left: auto;
     margin-right: auto;
-    margin-top: auto;
+    margin-top: 165px !important;    
     overflow: hidden;
 }
+
+/* #categoryChart {
+    height: auto;
+    align-self: center;
+    width: auto;
+} */
 
 
 /* Update media query for better responsiveness */
@@ -432,9 +389,6 @@ table td.actions.editing {
         width: 100%;
     }
 
-    .pomodoro-timer {
-        font-size: 28px;
-    }
 
     .timer-type-buttons {
         flex-wrap: wrap;
@@ -482,10 +436,6 @@ table td.actions.editing {
         flex-direction: column;
     }
 
-    #pomodoro {
-        margin: 10px 0;
-        padding: 10px;
-    }
 
     #weeklyStats {
         margin: 10px auto;
@@ -586,19 +536,6 @@ table td.actions.editing {
         height: 1px;
     }
 
-    .pomodoro-timer {
-        font-size: 25px;
-    }
-
-    .pomodoro-controls {
-        flex-wrap: wrap;
-    }
-
-    #pomodoro {
-        margin: 15px 0;
-        padding: 12px;
-    }
-
     #weeklyStats {
         margin: 15px auto;
     }
@@ -621,11 +558,6 @@ table td.actions.editing {
         height: 250px !important;
     }
 
-    #pomodoro {
-        margin-top: 10px;
-        order: 3;
-        padding: 8px;
-    }
     .container-fluid {
         flex-direction: column;
     }
@@ -661,12 +593,5 @@ table td.actions.editing {
         width: 100% !important;
         height: 300px !important;
         margin: 0 auto;
-    }
-
-    #pomodoro {
-        margin: 20px 0;
-        order: 3;
-        padding: 15px;
-        width: 100%;
     }
 }

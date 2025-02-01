@@ -32,11 +32,6 @@ const todoList = document.getElementById("todoList");
 const newTodoInput = document.getElementById("newTodo");
 const addTodoBtn = document.getElementById("addTodoBtn");
 const todoItems = document.getElementById("todoItems");
-const startPomodoroBtn = document.getElementById("startPomodoro");
-const resetPomodoroBtn = document.getElementById("resetPomodoro");
-const workDurationInput = document.getElementById("workDuration");
-const pomodoroMinutes = document.getElementById("pomodoroMinutes");
-const pomodoroSeconds = document.getElementById("pomodoroSeconds");
 
 /**
  * Global State Variables
@@ -48,8 +43,6 @@ let sessions = [];
 let todos = [];
 let userId = null; 
 let interval = null; 
-let pomodoroTimer = null;
-let pomodoroTimeLeft = 0;
 
 /**
  * Time Formatting and Calculation Functions
@@ -121,7 +114,6 @@ async function loadUserData() {
             passwordPrompt.style.display = "none";
             mainContent.style.display = "block";
             todoList.classList.remove("d-none");
-            document.getElementById("pomodoro").style.display = "block"; // Show Pomodoro timer
             document.getElementById("weeklyStats").style.display = "block"; // Show Weekly Stats
             loadTodos(todos);
             sessionStorage.setItem("loggedIn", "true"); // Set logged-in state
@@ -475,13 +467,6 @@ topicInput.addEventListener("keypress", (e) => {
 
 // Logout Functionality
 document.getElementById("logoutBtn").addEventListener("click", async () => {
-    // Stop Pomodoro timer if running
-    if (pomodoroTimer) {
-        clearInterval(pomodoroTimer);
-        pomodoroTimer = null;
-        pomodoroTimeLeft = 3600;
-        updatePomodoroDisplay();
-    }
 
     if (currentSession.started) {
         stopTimer();
@@ -502,7 +487,6 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
     clockOutBtn.disabled = true;
     currentTopic.textContent = "";
     timer.textContent = "00:00:00";
-    startPomodoroBtn.disabled = false;
     workDurationInput.disabled = false;
     workDurationInput.value = "60";
 
@@ -513,7 +497,6 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
     stopTimer();
     mainContent.style.display = "none";
     passwordPrompt.style.display = "block";
-    document.getElementById("pomodoro").style.display = "none";
     document.getElementById("weeklyStats").style.display = "none";
     passwordInput.value = "";
     topicInput.value = "";
@@ -585,69 +568,6 @@ clockOutBtn.addEventListener("click", async () => {
     }
 });
 
-/**
- * Pomodoro Timer Functions
- */
-function startPomodoro() {
-    if (pomodoroTimer) return;
-    
-    const duration = parseInt(workDurationInput.value) || 60;
-    pomodoroTimeLeft = duration * 60;
-    
-    startPomodoroBtn.disabled = true;
-    workDurationInput.disabled = true;
-    
-    // Save state when starting
-    sessionStorage.setItem('pomodoroTimeLeft', pomodoroTimeLeft);
-    sessionStorage.setItem('pomodoroRunning', 'true');
-    sessionStorage.setItem('pomodoroDuration', duration);
-    
-    pomodoroTimer = setInterval(() => {
-        pomodoroTimeLeft--;
-        updatePomodoroDisplay();
-        sessionStorage.setItem('pomodoroTimeLeft', pomodoroTimeLeft);
-        
-        if (pomodoroTimeLeft <= 0) {
-            stopPomodoro();
-            new Notification("Pomodoro Timer", {
-                body: "Time's up! Take a break!",
-                icon: "favicon.ico"
-            });
-            playSound(); // Play sound when timer ends
-        }
-    }, 1000);
-}
-
-function playSound() {
-    const audio = new Audio('alarm.mp3'); // Replace with the path to your sound file
-    audio.play();
-}
-
-function stopPomodoro() {
-    clearInterval(pomodoroTimer);
-    pomodoroTimer = null;
-    startPomodoroBtn.disabled = false;
-    workDurationInput.disabled = false;
-    sessionStorage.removeItem('pomodoroRunning');
-}
-
-function resetPomodoro() {
-    stopPomodoro();
-    const duration = parseInt(workDurationInput.value) || 60;
-    pomodoroTimeLeft = duration * 60;
-    updatePomodoroDisplay();
-    // Clear timer state from storage
-    sessionStorage.removeItem('pomodoroTimeLeft');
-    sessionStorage.removeItem('pomodoroRunning');
-    sessionStorage.removeItem('pomodoroDuration');
-}
-
-function updatePomodoroDisplay() {
-    const minutes = Math.floor(pomodoroTimeLeft / 60);
-    const seconds = pomodoroTimeLeft % 60;
-    pomodoroMinutes.textContent = minutes.toString().padStart(2, "0");
-    pomodoroSeconds.textContent = seconds.toString().padStart(2, "0");
-}
 
 /**
  * Todo List Management Functions
@@ -744,26 +664,7 @@ async function toggleTodoCheck(index) {
     await saveUserData();
     loadTodos(todos);
 }
-
-/**
- * Event Listeners
- */
 addTodoBtn.addEventListener("click", addTodo);
-
-startPomodoroBtn.addEventListener("click", () => {
-    if (Notification.permission === "default") {
-        Notification.requestPermission();
-    }
-    startPomodoro();
-});
-
-resetPomodoroBtn.addEventListener("click", resetPomodoro);
-
-workDurationInput.addEventListener("change", () => {
-    if (!pomodoroTimer) {
-        resetPomodoro();
-    }
-});
 
 /**
  * Application Initialization
@@ -777,36 +678,6 @@ window.onload = async () => {
     }
     updateLocalTime();
     setInterval(updateLocalTime, 1000);
-    
-    // Restore pomodoro state
-    const savedTimeLeft = sessionStorage.getItem('pomodoroTimeLeft');
-    const isRunning = sessionStorage.getItem('pomodoroRunning');
-    const savedDuration = sessionStorage.getItem('pomodoroDuration');
-    
-    if (savedTimeLeft && isRunning) {
-        pomodoroTimeLeft = parseInt(savedTimeLeft);
-        workDurationInput.value = savedDuration;
-        updatePomodoroDisplay();
-        startPomodoroBtn.disabled = true;
-        workDurationInput.disabled = true;
-        
-        pomodoroTimer = setInterval(() => {
-            pomodoroTimeLeft--;
-            updatePomodoroDisplay();
-            sessionStorage.setItem('pomodoroTimeLeft', pomodoroTimeLeft);
-            
-            if (pomodoroTimeLeft <= 0) {
-                stopPomodoro();
-                new Notification("Pomodoro Timer", {
-                    body: "Time's up! Take a break!",
-                    icon: "favicon.ico"
-                });
-                playSound(); // Play sound when timer ends
-            }
-        }, 1000);
-    } else {
-        resetPomodoro();
-    }
 };
 
 // Load Google Charts
