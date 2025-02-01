@@ -53,7 +53,10 @@
                 <span id="timer" class="font-weight-bold">00:00:00</span>
             </div>
             <div id="sessionList" class="mt-4">
-                <h2>Previous Sessions</h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2>Previous Sessions</h2>
+                    <button id="exportDataBtn" class="btn btn-info">Export Data</button>
+                </div>
                 <div id="sessionsContainer"></div>
             </div>
         </div>
@@ -61,6 +64,10 @@
             <div id="weeklyStats" class="text-center mt-4">
                 <h3 class="h4">Weekly Summary</h3>
                 <div id="categoryChart"></div>
+            </div>
+            <div id="analytics" class="text-center mt-4">
+                <h3 class="h4">Daily Summary</h3>
+                <div id="dailyStudyChart"></div>
             </div>
         </div>
     </div>

@@ -323,8 +323,6 @@ table td.actions.editing {
 /* Weekly Stats Styles */
 #weeklyStats {
     display: none;
-    /* margin: 10px auto; */
-    background: #fff;
     padding: 10px;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -336,11 +334,16 @@ table td.actions.editing {
     overflow: hidden;
 }
 
-/* #categoryChart {
+#analytics {
+    display: none;
+    /* margin: 10px auto; */
+    padding: 10px;
+    border-radius: 5px;
+    width: 220px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     height: auto;
-    align-self: center;
-    width: auto;
-} */
+    overflow: hidden;
+}
 
 
 /* Update media query for better responsiveness */

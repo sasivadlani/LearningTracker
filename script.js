@@ -115,10 +115,13 @@ async function loadUserData() {
             mainContent.style.display = "block";
             todoList.classList.remove("d-none");
             document.getElementById("weeklyStats").style.display = "block"; // Show Weekly Stats
+            document.getElementById("analytics").style.display = "block"; // Show Daily Study Chart
             loadTodos(todos);
             sessionStorage.setItem("loggedIn", "true"); // Set logged-in state
             sessionStorage.setItem("userId", userId); // Store userId in session storage
             updateCategoryChart();
+            updateDailyStudyChart();
+            updateAnalytics();
         }
     } catch (err) {
         console.error("Error loading data:", err);
@@ -389,6 +392,7 @@ function loadSessions(sessions) {
         element.addEventListener("click", toggleCommentDisplay);
     });
     updateCategoryChart();
+    updateDailyStudyChart();
 }
 
 function getOpenSections() {
@@ -560,6 +564,7 @@ clockOutBtn.addEventListener("click", async () => {
         await saveUserData();
         loadSessions(sessions);
         updateCategoryChart(); 
+        updateDailyStudyChart();
         currentTopic.textContent = "";
         timer.textContent = "00:00:00";
     } catch (err) {
@@ -678,9 +683,10 @@ window.onload = async () => {
     }
     updateLocalTime();
     setInterval(updateLocalTime, 1000);
+    google.charts.load('current', { packages: ['corechart'] });
+    google.charts.setOnLoadCallback(updateAnalytics);
 };
 
-// Load Google Charts
 google.charts.load('current', {'packages':['corechart']});
 google.charts.setOnLoadCallback(updateCategoryChart);
 
@@ -760,4 +766,127 @@ function updateCategoryChart() {
 
     const chart = new google.visualization.PieChart(document.getElementById('categoryChart'));
     chart.draw(data, options);
+}
+
+/**
+ * Export Data to CSV Functionality
+ */
+function exportToCSV() {
+    const confirmExport = confirm("Are you sure you want to export your session data to a CSV file?");
+    if (!confirmExport) {
+        return;
+    }
+
+    const csvRows = [];
+    const headers = ["Topic", "Started", "Ended", "Total Time", "Comment"];
+    csvRows.push(headers.join(","));
+
+    sessions.forEach(session => {
+        const values = [
+            session.topic,
+            new Date(session.started).toLocaleString(),
+            new Date(session.ended).toLocaleString(),
+            session.totalTime,
+            session.comment || ""
+        ];
+        csvRows.push(values.join(","));
+    });
+
+    const csvString = csvRows.join("\n");
+    const blob = new Blob([csvString], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.setAttribute("hidden", "");
+    a.setAttribute("href", url);
+    a.setAttribute("download", "sessions.csv");
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+document.getElementById("exportDataBtn").addEventListener("click", exportToCSV);
+
+/**
+ * Analytics and Visualization Functions
+ */
+function calculateDailyStudyTime() {
+    const dailyStudyTime = {};
+
+    sessions.forEach(session => {
+        if (session.topic.startsWith("LT:")) return; // Exclude non-study sessions
+
+        const date = formatDate(session.started);
+        const group = session.topic.split(':')[0].trim(); // Extract group from topic
+        const duration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60); // Duration in hours
+
+        if (!dailyStudyTime[date]) {
+            dailyStudyTime[date] = {};
+        }
+
+        dailyStudyTime[date][group] = (dailyStudyTime[date][group] || 0) + duration;
+    });
+
+    return dailyStudyTime;
+}
+
+function updateDailyStudyChart() {
+    const dailyStudyTime = calculateDailyStudyTime();
+    
+    const data = new google.visualization.DataTable();
+    data.addColumn('string', 'Date');
+
+    // Get all unique groups
+    const groups = new Set();
+    Object.values(dailyStudyTime).forEach(groupsData => {
+        Object.keys(groupsData).forEach(group => groups.add(group));
+    });
+
+    // Add columns for each group
+    groups.forEach(group => data.addColumn('number', group));
+    data.addColumn({ type: 'number', role: 'annotation' }); // Add annotation column for total hours
+
+    // Get the last 7 dates including today
+    const today = new Date().toLocaleDateString();
+    const sortedDates = Object.keys(dailyStudyTime).sort((a, b) => new Date(a) - new Date(b));
+    const last7Dates = sortedDates.filter(date => new Date(date) <= new Date(today)).slice(-7);
+
+    // Add rows for each date
+    last7Dates.forEach(date => {
+        const groupsData = dailyStudyTime[date] || {};
+        const row = [date];
+        let totalHours = 0;
+        groups.forEach(group => {
+            const hours = groupsData[group] || 0;
+            row.push(hours);
+            totalHours += hours;
+        });
+        row.push(totalHours); // Add total hours as annotation
+        data.addRow(row);
+    });
+
+    const options = {
+        title: 'Daily Study Time',
+        hAxis: { title: 'Date' },
+        vAxis: { title: 'Hours' },
+        legend: { position: 'none' },
+        height: 400,
+        chartArea: { width: '80%', height: '70%' },
+        isStacked: true,
+        annotations: {
+            alwaysOutside: true,
+            textStyle: {
+                fontSize: 12,
+                auraColor: 'none',
+                color: 'black'
+            }
+        }
+    };
+
+    const chart = new google.visualization.ColumnChart(document.getElementById('dailyStudyChart'));
+    chart.draw(data, options);
+}
+
+function updateAnalytics() {
+    updateCategoryChart();
+    updateDailyStudyChart();
 }
