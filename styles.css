@@ -23,14 +23,16 @@ body {
 }
 
 #timer {
-    font-size: 1.5rem;
+    font-size: 1.25rem;  /* Match currentTopic size */
     color: #333;
+    display: inline;  /* Change to inline */
 }
 
 #currentTopic {
     font-size: 1.25rem;
     color: #666;
     padding-right: 10px;
+    display: inline;  /* Change from block to inline */
 }
 
 .edit-input {
@@ -53,6 +55,7 @@ body {
     top: 10px;
     right: 10px;
     z-index: 1000;
+    cursor: pointer;
 }
 
 .container-fluid {
@@ -364,6 +367,36 @@ table td.actions.editing {
     overflow: hidden;
 }
 
+#weeklyGoalsSection {
+    background: #fff;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.goal-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin: 5px 0;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.goal-progress {
+    height: 20px;
+    margin: 5px 0;
+}
+
+.goal-info {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.goal-actions {
+    display: flex;
+    gap: 5px;
+}
 
 /* Update media query for better responsiveness */
 @media (max-width: 480px) {
@@ -465,6 +498,19 @@ table td.actions.editing {
 
     #categoryChart {
         height: 200px !important;
+    }
+
+    #weeklyGoalsSection {
+        padding: 10px;
+    }
+    
+    .goal-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .goal-actions {
+        margin-top: 5px;
     }
 }
 
