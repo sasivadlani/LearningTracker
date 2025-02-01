@@ -3,38 +3,34 @@ body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
     margin: 0;
-    padding: 0;
+    padding: 10px;
     background-color: #f4f4f4;
 }
 
 #clockInBtn, #clockOutBtn {
-    height: calc(1.5em + .75rem + 2px); /* Match the height of the topic input field */
+    height: 38px; 
 }
 #currentSession,
 #sessionList {
     background: #fff;
-    padding: 20px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-
+    padding: 10px;
+    margin: 10px 0;
     border-radius: 5px;
 }
 
 #RightContent {
     flex-basis: 10%;
-    /* margin-top: 20px;  */
-    padding-right: 10px;
 }
 
 #timer {
-    font-size: 24px;
+    font-size: 1.5rem;
     color: #333;
 }
 
 #currentTopic {
-    font-size: 22px;
+    font-size: 1.25rem;
     color: #666;
-    padding-right: 20px;
+    padding-right: 10px;
 }
 
 .edit-input {
@@ -46,25 +42,26 @@ body {
 }
 
 #localTime {
-    font-size: 36px;
+    font-size: 2rem;
     color: #333;
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 #logoutBtn {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 10px;
+    right: 10px;
     z-index: 1000;
 }
 
 .container-fluid {
     display: flex;
+    padding: 10px;
 }
 
 #mainContent {
-    display: none; /* Ensure this is hidden initially */
+    display: none;
     flex-basis: 80%;
 }
 
@@ -84,7 +81,8 @@ body {
 }
 
 #passwordPrompt {
-    margin-top: 5rem;
+    margin-top: 1rem;
+    padding: 10px;
 }
 
 #clockInOut {
@@ -101,13 +99,12 @@ body {
 }
 
 #todoList {
-    margin-top: 160px;
-    margin-left: 5px;
+    margin-top: 165px;
     background: #fff;
     padding: 10px;
     width: 200px;
     border-radius: 5px;
-    overflow: auto; /* Changed from hidden to auto */
+    overflow: auto;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
@@ -122,7 +119,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 5px;
-    overflow: hidden; /* Ensure content stays within the container */
+    overflow: hidden;
 }
 
 #todoList ul li .form-check {
@@ -168,143 +165,39 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
 
+#todoList ul li.intermediate {
+    text-decoration: none;
+    color: #666;
+    background-color: #fff3cd;
+}
+
 #todoList ul li.checked {
     text-decoration: line-through;
+    text-decoration-thickness: 2px;
     color: #999;
+    background-color: #f8f9fa;
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-
-    #currentSession,
-    #sessionList {
-        padding: 15px;
-        margin-top: 15px;
-    }
-
-    #timer {
-        font-size: 20px;
-    }
-
-    #currentTopic {
-        font-size: 18px;
-        padding-right: 15px;
-    }
-
-    .edit-input {
-        width: 100%;
-        padding: 10px;
-    }
-
-    #todoList {
-        padding: 15px;
-        margin-top: 15px;
-        flex-basis: 100%;
-    }
-
-    #todoList ul li {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    #todoList ul li input[type="text"] {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-
-    #todoList ul li button {
-        margin-left: 0;
-        width: 100%;
-        height: 1px;
-    }
-
-    .pomodoro-timer {
-        font-size: 25px;
-    }
-
-    .pomodoro-controls {
-        flex-wrap: wrap;
-    }
-}
-
-@media (max-width: 480px) {
-
-    #currentSession,
-    #sessionList {
-        padding: 10px;
-        margin-top: 10px;
-    }
-
-    #timer {
-        font-size: 18px;
-    }
-
-    #currentTopic {
-        font-size: 16px;
-        padding-right: 10px;
-    }
-
-    .edit-input {
-        width: 100%;
-        padding: 8px;
-    }
-
-    #todoList {
-        padding: 10px;
-        margin-top: 10px;
-        flex-basis: 100%;
-    }
-
-    #todoList ul li {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    #todoList ul li input[type="text"] {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-
-    #todoList ul li button {
-        margin-left: 0;
-        height: 1px;
-        width: 100%;
-    }
-
-    .pomodoro-timer {
-        font-size: 28px;
-    }
-
-    .timer-type-buttons {
-        flex-wrap: wrap;
-    }
-}
-
-/* Responsive Table */
 table {
     width: 100%;
     border-collapse: collapse;
     overflow-x: auto;
     display: block;
     table-layout: fixed;
-    /* Ensure table takes up full width */
 }
 
 table th,
 table td {
-    padding: 10px;
+    padding: 8px;
     border: 1px solid #ddd;
     text-align: center;
-    /* Center all items in the cells */
     white-space: nowrap;
 }
 
 table th.topic,
 table td.topic {
     width: auto;
-    /* Allow topic column to take remaining space */
     white-space: normal;
-    /* Allow text to wrap */
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -313,7 +206,6 @@ table td.topic {
 table th.comment,
 table td.comment {
     width: 20%;
-    /* Reduce the width of the comment column */
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 150px;
@@ -330,7 +222,6 @@ table td.date,
 table th.actions,
 table td.actions {
     width: 140px;
-    /* Set fixed width for other columns */
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -338,33 +229,22 @@ table td.actions {
 table th.actions,
 table td.actions {
     width: 1%;
-    /* Give actions column minimal width initially */
     white-space: nowrap;
-    /* Prevent text from wrapping */
 }
 
 table td.actions.editing {
     width: auto;
-    /* Allow actions column to expand when editing */
-}
-
-@media (max-width: 768px) {
-    table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
 }
 
 /* Collapsible Styles */
 .collapsible {
     cursor: pointer;
-    padding: 10px;
+    padding: 8px;
     width: 100%;
     border: none;
     text-align: left;
     outline: none;
-    font-size: 18px;
+    font-size: 1rem;
     background-color: #e0e0e0;
     color: #333;
     margin-bottom: 5px;
@@ -389,13 +269,13 @@ table td.actions.editing {
 }
 
 .collapsible-content {
-    padding: 10px;
+    padding: 8px;
     display: none;
     overflow: hidden;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
     border-radius: 5px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .comment-textarea {
@@ -430,32 +310,207 @@ table td.actions.editing {
     word-wrap: break-word;
 }
 
-/* Add new responsive layout styles */
-@media (max-width: 992px) {
+
+
+/* Add sticky header for tables */
+.table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 1;
+}
+
+/* Pomodoro Timer Styles */
+#pomodoro {
+    display: none; 
+    margin-top: 165px;
+    background: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: 100%;
+}
+
+.timer-display {
+    font-family: 'Roboto Mono', monospace;
+    color: #333;
+    /* margin: 20px 0; */
+}
+
+.timer-display span {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.timer-buttons button {
+    /* width: 48%;
+    height: 40px; */
+    margin: 5px;
+    border-radius: 5px;
+}
+
+.timer-settings {
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+
+.timer-settings input {
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.timer-settings label {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+
+
+
+/* Weekly Stats Styles */
+#weeklyStats {
+    display: none;
+    margin: 10px auto;
+    background: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: auto;
+    overflow: hidden;
+}
+
+
+/* Update media query for better responsiveness */
+@media (max-width: 480px) {
+
+    #currentSession,
+    #sessionList {
+        padding: 10px;
+        margin-top: 10px;
+    }
+
+    #timer {
+        font-size: 18px;
+    }
+
+    #currentTopic {
+        font-size: 16px;
+        padding-right: 10px;
+    }
+
+    .edit-input {
+        width: 100%;
+        padding: 8px;
+    }
+
+    #todoList {
+        padding: 10px;
+        margin-top: 10px;
+        flex-basis: 100%;
+        width: 100%;
+    }
+
+    #todoList ul li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #todoList ul li input[type="text"] {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    #todoList ul li button {
+        margin-left: 0;
+        height: 1px;
+        width: 100%;
+    }
+
+    .pomodoro-timer {
+        font-size: 28px;
+    }
+
+    .timer-type-buttons {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 576px) {
+    #passwordPrompt {
+        margin-top: 1rem;
+        padding: 10px;
+    }
+
+    .table th,
+    .table td {
+        padding: 5px;
+        font-size: 0.875rem;
+    }
+
+    .edit-input {
+        font-size: 14px;
+        padding: 2px;
+    }
+
+    .btn {
+        padding: 4px 8px;
+        font-size: 0.875rem;
+    }
+
+    #logoutBtn {
+        top: 10px;
+        right: 10px;
+    }
+
+    #todoList {
+        order: 3;
+    }
+    #sessionList {
+        order: 2;
+    }
+    #mainContent {
+        order: 1;
+    }
+
     .container-fluid {
         flex-direction: column;
     }
 
-    #mainContent {
-        flex-basis: 100%;
-        order: 1;
+    #pomodoro {
+        margin: 10px 0;
+        padding: 10px;
     }
 
-    #todoList {
-        margin-top: 20px;
-        order: 2;
+    #weeklyStats {
+        margin: 10px auto;
     }
 
-    .flex-grow-1 {
-        flex-basis: 100%;
-    }
-
-    #RightContent {
-        display: none;
+    #categoryChart {
+        height: 200px !important;
     }
 }
 
 @media (max-width: 768px) {
+    .timer-display span {
+        font-size: 1.25rem;
+        min-width: 40px;
+    }
+
+    .timer-buttons button {
+        width: 40px;
+        height: 40px;
+    }
+
+    .timer-buttons button i {
+        font-size: 20px;
+    }
+
     #clockInOut {
         flex-direction: column;
     }
@@ -484,168 +539,134 @@ table td.actions.editing {
     }
 
     #timer {
-        font-size: 20px;
-    }
-}
-
-@media (max-width: 576px) {
-    #passwordPrompt {
-        margin-top: 2rem;
-        padding: 15px;
+        font-size: 1.25rem;
     }
 
-    .table th,
-    .table td {
-        padding: 5px;
-        font-size: 14px;
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    #currentSession,
+    #sessionList {
+        padding: 8px;
+        margin-top: 8px;
+    }
+
+    #currentTopic {
+        font-size: 1rem;
+        padding-right: 10px;
     }
 
     .edit-input {
-        font-size: 14px;
-        padding: 2px;
-    }
-
-    .btn {
-        padding: 4px 8px;
-        font-size: 14px;
-    }
-
-    #logoutBtn {
-        top: 10px;
-        right: 10px;
+        width: 100%;
+        padding: 10px;
     }
 
     #todoList {
-        order: 3; /* Move below previous sessions */
-    }
-    #sessionList {
-        order: 2;
-    }
-    #mainContent {
-        order: 1;
+        padding: 8px;
+        margin-top: 8px;
+        flex-basis: 100%;
     }
 
-    .container-fluid {
+    #todoList ul li {
         flex-direction: column;
+        align-items: flex-start;
     }
-}
 
-/* Add sticky header for tables */
-.table thead th {
-    position: sticky;
-    top: 0;
-    background-color: #fff;
-    z-index: 1;
-}
+    #todoList ul li input[type="text"] {
+        width: 100%;
+        margin-bottom: 10px;
+    }
 
-/* Pomodoro Timer Styles */
-#pomodoro {
-    display: none; /* Hide Pomodoro timer initially */
-    margin-top: 160px;
-    background: #fff;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    width: 100%;
-}
+    #todoList ul li button {
+        margin-left: 0;
+        width: 100%;
+        height: 1px;
+    }
 
-.timer-display {
-    font-family: 'Roboto Mono', monospace;
-    color: #333;
-    /* margin: 20px 0; */
-}
+    .pomodoro-timer {
+        font-size: 25px;
+    }
 
-.timer-display span {
-    font-size: 1.5rem;
-    font-weight: bold;
-}
+    .pomodoro-controls {
+        flex-wrap: wrap;
+    }
 
-.timer-buttons button {
-    /* width: 48%;
-    height: 40px; */
-    margin: 5px;
-    border-radius: 5px;
-}
-
-.timer-settings {
-    border-top: 1px solid #eee;
-    padding-top: 20px;
-}
-
-/* .timer-settings .form-group {
-    margin-bottom: 15px;
-} */
-
-.timer-settings input {
-    text-align: center;
-    font-size: 1.1rem;
-    /* max-width: 100px; */
-    /* margin: 0 auto; */
-}
-
-.timer-settings label {
-    display: block;
-    margin-top: 5px;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-@media (max-width: 992px) {
     #pomodoro {
-        margin-top: 20px;
-        order: 3;
+        margin: 15px 0;
+        padding: 12px;
+    }
+
+    #weeklyStats {
+        margin: 15px auto;
+    }
+
+    #categoryChart {
+        height: 250px !important;
     }
 }
 
-@media (max-width: 768px) {
-    .timer-display span {
-        font-size: 2rem;
-        min-width: 50px;
-    }
-
-    .timer-buttons button {
-        width: 50px;
-        height: 50px;
-    }
-
-    .timer-buttons button i {
-        font-size: 20px;
-    }
-}
-
-/* Weekly Stats Styles */
-#weeklyStats {
-    display: none; /* Hide Weekly Stats initially */
-    margin-top: 20px;
-    background: #fff;
-    padding: 5px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    width: 200px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: auto;
-    overflow: hidden;
-    /* min-height: 250px;  */
-}
-
-/* #categoryChart {
-    width: 100% !important; 
-    height: 200px !important;
-    margin: 0 auto; 
-} */
-
-/* Update media query for better responsiveness */
 @media (max-width: 992px) {
     #weeklyStats {
-        margin-top: 20px;
+        margin-top: 10px;
         order: 4;
-        width: 100%; /* Allow full width on smaller screens */
-        max-width: 400px; /* Reduce maximum width */
+        width: 100%;
+        max-width: 400px;
     }
     
     #categoryChart {
         width: 100% !important;
         height: 250px !important;
+    }
+
+    #pomodoro {
+        margin-top: 10px;
+        order: 3;
+        padding: 8px;
+    }
+    .container-fluid {
+        flex-direction: column;
+    }
+
+    #mainContent {
+        flex-basis: 100%;
+        order: 1;
+    }
+
+    #todoList {
+        margin-top: 10px;
+        order: 2;
+        padding: 8px;
+        width: 100%;
+    }
+
+    .flex-grow-1 {
+        flex-basis: 100%;
+    }
+
+    #RightContent {
+        display: none;
+    }
+
+    #weeklyStats {
+        margin: 20px auto;
+        order: 4;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    #categoryChart {
+        width: 100% !important;
+        height: 300px !important;
+        margin: 0 auto;
+    }
+
+    #pomodoro {
+        margin: 20px 0;
+        order: 3;
+        padding: 15px;
+        width: 100%;
     }
 }

@@ -613,8 +613,14 @@ function startPomodoro() {
                 body: "Time's up! Take a break!",
                 icon: "favicon.ico"
             });
+            playSound(); // Play sound when timer ends
         }
     }, 1000);
+}
+
+function playSound() {
+    const audio = new Audio('alarm.mp3'); // Replace with the path to your sound file
+    audio.play();
 }
 
 function stopPomodoro() {
@@ -654,25 +660,41 @@ function updateLocalTime() {
 function loadTodos(todoList) {
     todoItems.innerHTML = "";
     todos = todoList;
+    
+    // Sort todos by status: intermediate -> unchecked -> checked
+    todos.sort((a, b) => {
+        const statusOrder = { 'intermediate': 0, 'unchecked': 1, 'checked': 2 };
+        return statusOrder[a.status || 'unchecked'] - statusOrder[b.status || 'unchecked'];
+    });
+
     todos.forEach((todo, index) => {
         const li = document.createElement("li");
         li.setAttribute('data-full-text', todo.text);
-        li.className = `list-group-item d-flex justify-content-between align-items-center ${todo.checked ? "checked" : ""}`;
+        const status = todo.status || 'unchecked'; // Default to unchecked if status doesn't exist
+        li.className = `list-group-item d-flex justify-content-between align-items-center ${status}`;
         li.innerHTML = `
             <div class="form-check">
-                <input type="checkbox" class="form-check-input" ${todo.checked ? "checked" : ""} onclick="toggleTodoCheck(${index})">
+                <input type="checkbox" class="form-check-input" 
+                    ${status === 'checked' ? "checked" : ""} 
+                    ${status === 'intermediate' ? "indeterminate='true'" : ""}
+                    onclick="toggleTodoCheck(${index})">
                 <input type="text" class="form-control-plaintext" value="${todo.text}" disabled>
             </div>
             <button class="btn btn-danger btn-sm" onclick="deleteTodo(${index})">x</button>
         `;
         todoItems.appendChild(li);
+        
+        // Set indeterminate state if needed
+        if (status === 'intermediate') {
+            li.querySelector('input[type="checkbox"]').indeterminate = true;
+        }
     });
 }
 
 async function addTodo() {
     const todo = newTodoInput.value.trim();
     if (todo) {
-        todos.unshift({ text: todo, checked: false });
+        todos.unshift({ text: todo, status: 'unchecked' });
         await saveUserData();
         loadTodos(todos);
         newTodoInput.value = "";
@@ -686,16 +708,39 @@ async function deleteTodo(index) {
 }
 
 async function toggleTodoCheck(index) {
-    todos[index].checked = !todos[index].checked;
-    if (todos[index].checked) {
-        const [checkedTodo] = todos.splice(index, 1);
-        const firstUncheckedIndex = todos.findIndex(todo => todo.checked);
-        if (firstUncheckedIndex === -1) {
-            todos.push(checkedTodo);
-        } else {
-            todos.splice(firstUncheckedIndex, 0, checkedTodo);
-        }
+    // Cycle through states: unchecked -> intermediate -> checked
+    const currentStatus = todos[index].status || 'unchecked';
+    const todo = todos[index];
+
+    switch (currentStatus) {
+        case 'unchecked':
+            todo.status = 'intermediate';
+            // Move to top of the list
+            todos.splice(index, 1);
+            todos.unshift(todo);
+            break;
+        case 'intermediate':
+            todo.status = 'checked';
+            // Move to bottom with checked items
+            todos.splice(index, 1);
+            const firstCheckedIndex = todos.findIndex(t => t.status === 'checked');
+            if (firstCheckedIndex === -1) {
+                todos.push(todo);
+            } else {
+                todos.splice(firstCheckedIndex, 0, todo);
+            }
+            break;
+        case 'checked':
+            todo.status = 'unchecked';
+            // Move after intermediate items but before checked items
+            todos.splice(index, 1);
+            const firstChecked = todos.findIndex(t => t.status === 'checked');
+            const afterIntermediate = todos.findIndex(t => t.status !== 'intermediate');
+            const insertIndex = afterIntermediate === -1 ? todos.length : afterIntermediate;
+            todos.splice(insertIndex, 0, todo);
+            break;
     }
+    
     await saveUserData();
     loadTodos(todos);
 }
@@ -705,9 +750,7 @@ async function toggleTodoCheck(index) {
  */
 addTodoBtn.addEventListener("click", addTodo);
 
-// Add these event listeners after other event listeners
 startPomodoroBtn.addEventListener("click", () => {
-    // Request notification permission if needed
     if (Notification.permission === "default") {
         Notification.requestPermission();
     }
@@ -758,6 +801,7 @@ window.onload = async () => {
                     body: "Time's up! Take a break!",
                     icon: "favicon.ico"
                 });
+                playSound(); // Play sound when timer ends
             }
         }, 1000);
     } else {
