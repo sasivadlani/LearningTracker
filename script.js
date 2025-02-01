@@ -166,6 +166,22 @@ async function loadWeeklyGoals() {
     }
 }
 
+function isCurrentWeek(date) {
+    const { start, end } = getWeekDateRange();
+    return date >= start && date <= end;
+}
+
+function getBacklogGoals() {
+    if (!weeklyGoals || !weeklyGoals.length) return [];
+    
+    return weeklyGoals
+        .filter(goal => {
+            if (!goal.weekStart) return false;
+            return !isCurrentWeek(new Date(goal.weekStart)) && 
+                   (calculateGoalProgress(goal.category) / goal.hours) * 100 < 100;
+        });
+}
+
 function renderWeeklyGoals() {
     const goalsContainer = document.getElementById('goalsContainer');
     if (!goalsContainer) return;
@@ -173,16 +189,38 @@ function renderWeeklyGoals() {
     const { start, end } = getWeekDateRange();
     const dateRange = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
     
-    goalsContainer.innerHTML = `<div class="text-muted small mb-2">Week: ${dateRange}</div>`;
+    // Get current week's goals
+    const currentWeekGoals = weeklyGoals.filter(goal => 
+        !goal.weekStart || isCurrentWeek(new Date(goal.weekStart)));
 
-    // Sort goals by progress percentage
-    weeklyGoals.sort((a, b) => {
+    // Get backlog goals
+    const backlogGoals = getBacklogGoals();
+
+    goalsContainer.innerHTML = `
+        <div class="text-muted small mb-2">Week: ${dateRange}</div>
+        <div id="currentWeekGoals"></div>
+        ${backlogGoals.length ? '<div id="backlogGoals" class="mt-3"><h5 class="text-danger">Backlog</h5></div>' : ''}
+    `;
+
+    // Render current week's goals
+    const currentWeekContainer = document.getElementById('currentWeekGoals');
+    renderGoalsList(currentWeekGoals, currentWeekContainer);
+
+    // Render backlog if exists
+    if (backlogGoals.length) {
+        const backlogContainer = document.getElementById('backlogGoals');
+        renderGoalsList(backlogGoals, backlogContainer);
+    }
+}
+
+function renderGoalsList(goals, container) {
+    goals.sort((a, b) => {
         const progressA = (calculateGoalProgress(a.category) / a.hours) * 100;
         const progressB = (calculateGoalProgress(b.category) / b.hours) * 100;
         return progressB - progressA;
     });
 
-    weeklyGoals.forEach((goal, index) => {
+    goals.forEach((goal, index) => {
         const progress = calculateGoalProgress(goal.category);
         const percentage = Math.min((progress / goal.hours) * 100, 100);
         
@@ -206,7 +244,7 @@ function renderWeeklyGoals() {
                 <button class="btn btn-danger btn-sm" onclick="deleteGoal(${index})">×</button>
             </div>
         `;
-        goalsContainer.appendChild(goalElement);
+        container.appendChild(goalElement);
     });
 }
 
@@ -229,17 +267,24 @@ async function addWeeklyGoal() {
         return;
     }
 
-    // Check if goal for this category already exists (case insensitive)
+    const newGoal = {
+        category,
+        hours,
+        weekStart: getWeekDateRange().start.toISOString() // Add week start date
+    };
+
+    // Check if goal for this category already exists
     const existingGoal = weeklyGoals.find(g => g.category.toUpperCase() === category.toUpperCase());
     if (existingGoal) {
         const update = confirm(`A goal for ${existingGoal.category} already exists. Do you want to update it?`);
         if (update) {
             existingGoal.hours = hours;
+            existingGoal.weekStart = newGoal.weekStart;
         } else {
             return;
         }
     } else {
-        weeklyGoals.push({ category, hours });
+        weeklyGoals.push(newGoal);
     }
     
     try {
