@@ -126,6 +126,7 @@ async function loadUserData() {
             loadTodos(todos);
             sessionStorage.setItem("loggedIn", "true"); // Set logged-in state
             sessionStorage.setItem("userId", userId); // Store userId in session storage
+            updateCategoryChart();
         }
     } catch (err) {
         console.error("Error loading data:", err);
@@ -813,23 +814,32 @@ function updateCategoryChart() {
     });
 
     const options = {
-        // pieHole: 0.7,
-        height: 200,
-        width: 180,
+        // pieHole: 0.8,
+        height: "100%",
+        width: 200,
         legend: { 
-            position: 'none'
+            position: 'bottom',
+            alignment: 'end',
+                textStyle: {
+                fontSize: 11,
+                bold: true,
+                color: 'black',
+            },
         },
         chartArea: { 
             width: '90%',
             height: '90%',
-            backgroundColor: {
-                fill: '#333'
-            }
+            top: 0,
         },
-        is3D: true,
+        // is3D: true,
         pieSliceText: 'label',
         pieSliceTextStyle: {
-            color: 'black'
+            color: 'black',
+            fontSize: 10,
+            bold: true,
+        },
+        tooltip: {
+            trigger: 'selection'
         }
     };
 
