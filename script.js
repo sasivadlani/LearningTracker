@@ -814,7 +814,7 @@ function updateCategoryChart() {
     });
 
     const options = {
-        // pieHole: 0.8,
+        pieHole: 0.8,
         height: "100%",
         width: 200,
         legend: { 
@@ -831,7 +831,7 @@ function updateCategoryChart() {
             height: '90%',
             top: 0,
         },
-        // is3D: true,
+        // is3D: ≥true,
         pieSliceText: 'label',
         pieSliceTextStyle: {
             color: 'black',
