@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline';">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Learning Tracker</title>
@@ -69,6 +70,11 @@
                 </div>
                 <div id="sessionsContainer"></div>
             </div>
+            <small class="text-muted">
+                Keyboard shortcuts: 
+                <span class="keyboard-shortcut">Ctrl/⌘ + I</span> Clock In
+                <span class="keyboard-shortcut">Ctrl/⌘ + O</span> Clock Out
+            </small>
         </div>
         <div id="RightContent" class="flex-grow-1 ">
             <div id="weeklyStats" class="text-center mt-4">
@@ -79,8 +85,32 @@
                 <h3 class="h4">Daily Summary</h3>
                 <div id="dailyStudyChart"></div>
             </div>
+            <div id="productivityDashboard"></div>
         </div>
     </div>
+
+    <!-- Add Weekly Target Modal -->
+    <div class="modal fade" id="weeklyTargetModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Weekly Target</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="weeklyTargetInput">Hours per week:</label>
+                        <input type="number" class="form-control" id="weeklyTargetInput" min="1" max="168" step="0.5">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveWeeklyTarget">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

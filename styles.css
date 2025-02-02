@@ -414,6 +414,18 @@ table td.actions.editing {
     background-color: rgba(255, 255, 255, 0.7);
 }
 
+/* Add error state styles */
+.input-error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
 /* Update media query for better responsiveness */
 @media (max-width: 480px) {
 
@@ -678,4 +690,122 @@ table td.actions.editing {
         height: 300px !important;
         margin: 0 auto;
     }
+}
+
+/* Productivity Dashboard Styles */
+#productivityDashboard {
+    display: none;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#productivityDashboard .card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#productivityDashboard .card-header {
+    border-bottom: none;
+}
+
+#productivityDashboard .list-group-item {
+    border-left: none;
+    border-right: none;
+    padding: 1rem;
+}
+
+#productivityDashboard .list-group-item:first-child {
+    border-top: none;
+}
+
+#productivityDashboard .list-group-item:last-child {
+    border-bottom: none;
+}
+
+#productivityDashboard .progress {
+    min-width: 150px;
+    border-radius: 10px;
+    background-color: #f0f0f0;
+}
+
+#productivityDashboard .progress-bar {
+    font-weight: bold;
+    line-height: 20px;
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+#productivityDashboard h6 {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+#productivityDashboard .metric {
+    text-align: center;
+    padding: 10px;
+}
+
+#productivityDashboard .progress {
+    height: 20px;
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: #f0f0f0;
+}
+
+#productivityDashboard .progress-bar {
+    font-weight: bold;
+    line-height: 20px;
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+#productivityDashboard h6 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+#productivityDashboard small {
+    display: block;
+    margin-top: 5px;
+}
+
+.keyboard-shortcut {
+    background-color: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #dee2e6;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+#productivityDashboard .metric-label {
+    text-align: left;
+}
+
+#productivityDashboard small {
+    opacity: 0.8;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+#productivityHeader {
+    cursor: pointer;
+    user-select: none;
+    background-color: #f8f9fa;
+    transition: background-color 0.3s ease;
+}
+
+#productivityHeader:hover {
+    background-color: #e9ecef;
+}
+
+.toggle-icon {
+    font-size: 0.8em;
+    transition: transform 0.3s ease;
+}
+
+#productivityMetrics {
+    transition: all 0.3s ease;
 }

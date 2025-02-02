@@ -15,23 +15,25 @@ const docClient = new AWS.DynamoDB.DocumentClient();
  * DOM Element References
  * Get references to all HTML elements needed for the application
  */
-// Elements from DOM
-const passwordInput = document.getElementById("passwordInput");
-const userIdInput = document.getElementById("userIdInput");
-const submitPassword = document.getElementById("submitPassword");
-const mainContent = document.getElementById("mainContent");
-const passwordPrompt = document.getElementById("passwordPrompt");
-const topicInput = document.getElementById("topic");
-const clockInBtn = document.getElementById("clockInBtn");
-const clockOutBtn = document.getElementById("clockOutBtn");
-const currentTopic = document.getElementById("currentTopic");
-const timer = document.getElementById("timer");
-const sessionsContainer = document.getElementById("sessionsContainer");
-const localTimeElement = document.getElementById("localTime");
-const todoList = document.getElementById("todoList");
-const newTodoInput = document.getElementById("newTodo");
-const addTodoBtn = document.getElementById("addTodoBtn");
-const todoItems = document.getElementById("todoItems");
+// Cache DOM elements
+const domElements = {
+    passwordInput: document.getElementById("passwordInput"),
+    userIdInput: document.getElementById("userIdInput"),
+    submitPassword: document.getElementById("submitPassword"),
+    mainContent: document.getElementById("mainContent"),
+    passwordPrompt: document.getElementById("passwordPrompt"),
+    topicInput: document.getElementById("topic"),
+    clockInBtn: document.getElementById("clockInBtn"),
+    clockOutBtn: document.getElementById("clockOutBtn"),
+    currentTopic: document.getElementById("currentTopic"),
+    timer: document.getElementById("timer"),
+    sessionsContainer: document.getElementById("sessionsContainer"),
+    localTimeElement: document.getElementById("localTime"),
+    todoList: document.getElementById("todoList"),
+    newTodoInput: document.getElementById("newTodo"),
+    addTodoBtn: document.getElementById("addTodoBtn"),
+    todoItems: document.getElementById("todoItems")
+};
 
 /**
  * Global State Variables
@@ -44,13 +46,14 @@ let todos = [];
 let userId = null; 
 let interval = null; 
 let weeklyGoals = [];
+let weeklyTarget = 56; // Default target
 
 /**
  * Authentication Functions
  */
 async function handleLogin() {
-    const inputUserId = userIdInput.value;
-    const password = passwordInput.value;
+    const inputUserId = domElements.userIdInput.value;
+    const password = domElements.passwordInput.value;
 
     if (!inputUserId) {
         alert("Please enter a User ID");
@@ -76,8 +79,8 @@ async function handleLogin() {
             alert("Invalid Password");
         }
     } catch (err) {
-        console.error("Error logging in:", err);
-        alert("Error logging in. Check console.");
+        console.error("Login error:", err);
+        alert("Login failed. Please try again.");
     }
 }
 
@@ -97,23 +100,24 @@ async function handleLogout() {
     }
 
     // Reset UI elements
-    clockInBtn.disabled = false;
-    clockOutBtn.disabled = true;
-    currentTopic.textContent = "";
-    timer.textContent = "00:00:00";
+    domElements.clockInBtn.disabled = false;
+    domElements.clockOutBtn.disabled = true;
+    domElements.currentTopic.textContent = "";
+    domElements.timer.textContent = "00:00:00";
 
     // Reset state
     currentSession = {};
     sessions = [];
     todos = [];
     stopTimer();
-    mainContent.style.display = "none";
-    passwordPrompt.style.display = "block";
+    domElements.mainContent.style.display = "none";
+    domElements.passwordPrompt.style.display = "block";
     document.getElementById("weeklyStats").style.display = "none";
     document.getElementById("analytics").style.display = "none";
-    passwordInput.value = "";
-    topicInput.value = "";
-    todoList.classList.add("d-none");
+    document.getElementById("productivityDashboard").style.display = "none";
+    domElements.passwordInput.value = "";
+    domElements.topicInput.value = "";
+    domElements.todoList.classList.add("d-none");
 
     // Clear all session storage
     sessionStorage.clear();
@@ -146,7 +150,7 @@ function calculateTotalTime(started, ended) {
 
 function updateLocalTime() {
     const now = new Date();
-    localTimeElement.textContent = now.toLocaleTimeString();
+    domElements.localTimeElement.textContent = now.toLocaleTimeString();
 }
 
 function getWeekDateRange() {
@@ -183,23 +187,27 @@ async function loadUserData() {
             todos = data.Item.todos || [];
             currentSession = data.Item.currentSession || {};
             weeklyGoals = data.Item.weeklyGoals || []; // Add this line to load weekly goals
+            weeklyTarget = data.Item.weeklyTarget || 56; // Add this line
 
             if (currentSession.started) {
-                clockInBtn.disabled = true;
-                clockOutBtn.disabled = false;
-                currentTopic.textContent = currentSession.topic;
+                domElements.clockInBtn.disabled = true;
+                domElements.clockOutBtn.disabled = false;
+                domElements.currentTopic.textContent = currentSession.topic;
                 startTimer(currentSession.started);
             }
             
             loadSessions(sessions);
-            passwordPrompt.style.display = "none";
-            mainContent.style.display = "block";
-            todoList.classList.remove("d-none");
+            domElements.passwordPrompt.style.display = "none";
+            domElements.mainContent.style.display = "block";
+            domElements.todoList.classList.remove("d-none");
             document.getElementById("weeklyStats").style.display = "block";
             document.getElementById("analytics").style.display = "block";
+            document.getElementById("productivityDashboard").style.display = "block";
+
             loadTodos(todos);
             sessionStorage.setItem("loggedIn", "true");
             sessionStorage.setItem("userId", userId);
+            addProductivityDashboard(); // Add this line before renderWeeklyGoals
             renderWeeklyGoals(); 
             updateAnalytics();
         }
@@ -271,7 +279,7 @@ function startTimer(startedTime) {
         const hours = Math.floor(elapsed / 3600);
         const minutes = Math.floor((elapsed % 3600) / 60);
         const seconds = elapsed % 60;
-        timer.textContent = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        domElements.timer.textContent = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     }, 1000);
 }
 
@@ -281,7 +289,7 @@ function stopTimer() {
 }
 
 async function handleClockIn() {
-    const topic = topicInput.value.trim();
+    const topic = domElements.topicInput.value.trim();
     const specialCharPattern = /[^a-zA-Z0-9 &@,._:-]/g;
 
     if (!topic) {
@@ -304,10 +312,10 @@ async function handleClockIn() {
 
     await saveUserData();
 
-    clockInBtn.disabled = true;
-    clockOutBtn.disabled = false;
-    currentTopic.textContent = topic + ": ";
-    topicInput.value = ""; // Clear the topic input
+    domElements.clockInBtn.disabled = true;
+    domElements.clockOutBtn.disabled = false;
+    domElements.currentTopic.textContent = topic + ": ";
+    domElements.topicInput.value = ""; // Clear the topic input
     startTimer(currentSession.started);
 }
 
@@ -318,8 +326,8 @@ async function handleClockOut() {
     currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
     currentSession.comment = ""; // Add empty comment field
 
-    clockInBtn.disabled = false;
-    clockOutBtn.disabled = true;
+    domElements.clockInBtn.disabled = false;
+    domElements.clockOutBtn.disabled = true;
     stopTimer();
 
     sessions.unshift(currentSession);
@@ -329,9 +337,10 @@ async function handleClockOut() {
         loadSessions(sessions);
         updateCategoryChart(); 
         updateDailyStudyChart();
+        addProductivityDashboard(); // Add this line
         renderWeeklyGoals();
-        currentTopic.textContent = "";
-        timer.textContent = "00:00:00";
+        domElements.currentTopic.textContent = "";
+        domElements.timer.textContent = "00:00:00";
     } catch (err) {
         console.error("Error saving session:", err);
         alert("Error saving session. Check console.");
@@ -617,7 +626,7 @@ function toggleCommentDisplay(event) {
  * Todo List Management Functions
  */
 function loadTodos(todoList) {
-    todoItems.innerHTML = "";
+    domElements.todoItems.innerHTML = "";
     todos = todoList;
     
     // Sort todos by status: intermediate -> unchecked -> checked
@@ -641,7 +650,7 @@ function loadTodos(todoList) {
             </div>
             <button class="btn btn-danger btn-sm" onclick="deleteTodo(${index})">x</button>
         `;
-        todoItems.appendChild(li);
+        domElements.todoItems.appendChild(li);
         
         // Set indeterminate state if needed
         if (status === 'intermediate') {
@@ -651,12 +660,12 @@ function loadTodos(todoList) {
 }
 
 async function addTodo() {
-    const todo = newTodoInput.value.trim();
+    const todo = domElements.newTodoInput.value.trim();
     if (todo) {
         todos.unshift({ text: todo, status: 'unchecked' });
         await saveUserData();
         loadTodos(todos);
-        newTodoInput.value = "";
+        domElements.newTodoInput.value = "";
     }
 }
 
@@ -872,13 +881,19 @@ function getBacklogGoals() {
 function renderGoalsList(goals, container) {
     goals.sort((a, b) => {
         const progressA = (calculateGoalProgress(a.category) / a.hours) * 100;
-        const progressB = (calculateGoalProgress(b.category) / b.hours) * 100;
+        const progressB = (calculateGoalProgress(b.category) / a.hours) * 100;
         return progressB - progressA;
     });
 
-    goals.forEach((goal, index) => {
+    goals.forEach((goal) => {
         const progress = calculateGoalProgress(goal.category);
         const percentage = Math.min((progress / goal.hours) * 100, 100);
+        
+        // Find the actual index of the goal in the weeklyGoals array
+        const goalIndex = weeklyGoals.findIndex(g => 
+            g.category === goal.category && 
+            g.weekStart === goal.weekStart
+        );
         
         const goalElement = document.createElement('div');
         goalElement.className = 'goal-item';
@@ -897,7 +912,7 @@ function renderGoalsList(goals, container) {
                 </div>
             </div>
             <div class="goal-actions">
-                <button class="btn btn-danger btn-sm" onclick="deleteGoal(${index})">×</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteGoal(${goalIndex})">-</button>
             </div>
         `;
         container.appendChild(goalElement);
@@ -1071,27 +1086,150 @@ function calculateDailyStudyTime() {
     return dailyStudyTime;
 }
 
+// Add after calculateDailyStudyTime()
+function calculateProductivityScore() {
+    const { start, end } = getWeekDateRange();
+    let totalMinutes = 0;
+    let uniqueDays = new Set();
+    let longSessions = 0;
+    let totalSessions = 0;
+
+    const weekSessions = sessions.filter(session => {
+        const sessionDate = new Date(session.started);
+        return sessionDate >= start && sessionDate <= end;
+    });
+
+    weekSessions.forEach(session => {
+        const sessionDate = new Date(session.started).toLocaleDateString();
+        uniqueDays.add(sessionDate);
+        
+        const duration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60); // minutes
+        totalMinutes += duration;
+        totalSessions++;
+        
+        if (duration >= 45) { // Sessions longer than 45 minutes
+            longSessions++;
+        }
+    });
+
+    return {
+        productivity: ((totalMinutes / (7 * weeklyTarget/7 * 60)) * 100).toFixed(1), // % of 8-hour daily target
+        consistency: ((uniqueDays.size / 7) * 100).toFixed(1), // % of days active
+        focus: totalSessions > 0 ? ((longSessions / totalSessions) * 100).toFixed(1) : "0.0" // % of focused sessions
+    };
+}
+
+function addProductivityDashboard() {
+    const scores = calculateProductivityScore();
+    const dashboard = document.getElementById('productivityDashboard');
+    if (!dashboard) return;
+
+    dashboard.innerHTML = `
+        <div class="card mb-4">
+            <div class="card-header cursor-pointer" id="productivityHeader">
+                <h5 class="mb-0 h4 d-flex justify-content-between align-items-center">
+                    Weekly Productivity Metrics
+                    <span class="toggle-icon">▼</span>
+                </h5>
+            </div>
+            <div class="card-body" id="productivityMetrics" style="display: none;">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <div class="metric-label mb-2">
+                            <h6 class="mb-0">Weekly Target</h6>
+                            <small class="text-muted cursor-pointer" data-toggle="modal" data-target="#weeklyTargetModal">
+                                Target: ${weeklyTarget} hours/week (click to edit)
+                            </small>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                 style="width: ${scores.productivity}%">
+                                ${scores.productivity}%
+                            </div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="metric-label mb-2">
+                            <h6 class="mb-0">Daily Consistency</h6>
+                            <small class="text-muted">Days active this week</small>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: ${scores.consistency}%">
+                                ${scores.consistency}%
+                            </div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="metric-label mb-2">
+                            <h6 class="mb-0">Focus Score</h6>
+                            <small class="text-muted">Sessions > 45 minutes</small>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-info" role="progressbar" 
+                                 style="width: ${scores.focus}%">
+                                ${scores.focus}%
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    `;
+
+    // Add click event listener for toggling
+    const header = document.getElementById('productivityHeader');
+    const metrics = document.getElementById('productivityMetrics');
+    const toggleIcon = header.querySelector('.toggle-icon');
+    
+    header.addEventListener('click', () => {
+        const isVisible = metrics.style.display === 'block';
+        metrics.style.display = isVisible ? 'none' : 'block';
+        toggleIcon.textContent = isVisible ? '▼' : '▲';
+    });
+}
+// ...existing code...
+
+// Add after loadUserData function
+async function saveWeeklyTarget(target) {
+    try {
+        await docClient.update({
+            TableName: "LearningTracker",
+            Key: { userId },
+            UpdateExpression: "SET weeklyTarget = :target",
+            ExpressionAttributeValues: {
+                ":target": target
+            }
+        }).promise();
+        weeklyTarget = target;
+        addProductivityDashboard();
+    } catch (err) {
+        console.error("Error saving weekly target:", err);
+        alert("Failed to save weekly target");
+    }
+}
+
 /**
  * Event Listeners
  */
 function initializeEventListeners() {
-    submitPassword.addEventListener("click", handleLogin);
+    domElements.submitPassword.addEventListener("click", handleLogin);
 
-    passwordInput.addEventListener("keypress", (e) => {
+    domElements.passwordInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
-            submitPassword.click();
+            domElements.submitPassword.click();
         }
     });
 
-    newTodoInput.addEventListener("keypress", (e) => {
+    domElements.newTodoInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
-            addTodoBtn.click();
+            domElements.addTodoBtn.click();
         }
     });
 
-    topicInput.addEventListener("keypress", (e) => {
+    domElements.topicInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
-            clockInBtn.click();
+            domElements.clockInBtn.click();
         }
     });
 
@@ -1101,9 +1239,9 @@ function initializeEventListeners() {
         });
     });
 
-    clockInBtn.addEventListener("click", handleClockIn);
-    clockOutBtn.addEventListener("click", handleClockOut);
-    addTodoBtn.addEventListener("click", addTodo);
+    domElements.clockInBtn.addEventListener("click", handleClockIn);
+    domElements.clockOutBtn.addEventListener("click", handleClockOut);
+    domElements.addTodoBtn.addEventListener("click", addTodo);
 
     document.getElementById("exportDataBtn").addEventListener("click", exportToCSV);
 
@@ -1116,6 +1254,38 @@ function initializeEventListeners() {
     document.getElementById('goalHours').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             addWeeklyGoal();
+        }
+    });
+
+    // Add weekly target modal handlers
+    document.getElementById('saveWeeklyTarget').addEventListener('click', async () => {
+        const input = document.getElementById('weeklyTargetInput');
+        const newTarget = parseFloat(input.value);
+        if (newTarget > 0 && newTarget <= 168) {
+            await saveWeeklyTarget(newTarget);
+            $('#weeklyTargetModal').modal('hide');
+        } else {
+            alert('Please enter a valid number of hours (1-168)');
+        }
+    });
+
+    $('#weeklyTargetModal').on('show.bs.modal', function () {
+        document.getElementById('weeklyTargetInput').value = weeklyTarget;
+    });
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key) {
+                case 'i':
+                    e.preventDefault();
+                    if (!domElements.clockInBtn.disabled) domElements.clockInBtn.click();
+                    break;
+                case 'o':
+                    e.preventDefault();
+                    if (!domElements.clockOutBtn.disabled) domElements.clockOutBtn.click();
+                    break;
+            }
         }
     });
 }
@@ -1137,6 +1307,7 @@ window.onload = async () => {
     google.charts.setOnLoadCallback(updateAnalytics);
 
     initializeEventListeners();
+    addProductivityDashboard();
 };
 
 google.charts.load('current', {'packages':['corechart']});
