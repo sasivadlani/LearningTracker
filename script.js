@@ -156,7 +156,9 @@ function updateLocalTime() {
 function getWeekDateRange() {
     const now = new Date();
     const monday = new Date(now);
-    monday.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+    const currentDay = monday.getDay();
+    const diff = currentDay === 0 ? -6 : 1 - currentDay;
+    monday.setDate(monday.getDate() + diff);
     monday.setHours(0, 0, 0, 0);
 
     const sunday = new Date(monday);
@@ -790,19 +792,32 @@ async function addWeeklyGoal() {
         return;
     }
 
+    // Get the Monday of current week
+    const now = new Date();
+    const monday = new Date(now);
+    const currentDay = monday.getDay();
+    const diff = currentDay === 0 ? -6 : 1 - currentDay; // Adjust for Sunday
+    monday.setDate(monday.getDate() + diff);
+    monday.setHours(0, 0, 0, 0);
+
     const newGoal = {
         category,
         hours,
-        weekStart: getWeekDateRange().start.toISOString() // Add week start date
+        weekStart: monday.toISOString(),
+        weekNumber: getWeekNumber(monday)
     };
 
-    // Check if goal for this category already exists
-    const existingGoal = weeklyGoals.find(g => g.category.toUpperCase() === category.toUpperCase());
+    // Check if goal for this category already exists in the current week
+    const existingGoal = weeklyGoals.find(g => {
+        const goalWeekStart = new Date(g.weekStart);
+        return g.category.toUpperCase() === category.toUpperCase() && 
+               goalWeekStart.getTime() === monday.getTime();
+    });
+
     if (existingGoal) {
-        const update = confirm(`A goal for ${existingGoal.category} already exists. Do you want to update it?`);
+        const update = confirm(`A goal for ${existingGoal.category} already exists for this week. Do you want to update it?`);
         if (update) {
             existingGoal.hours = hours;
-            existingGoal.weekStart = newGoal.weekStart;
         } else {
             return;
         }
@@ -844,8 +859,22 @@ async function deleteGoal(index) {
     }
 }
 
-function calculateGoalProgress(category) {
-    const { start, end } = getWeekDateRange();
+function calculateGoalProgress(category, weekStart = null) {
+    let start, end;
+    
+    if (weekStart) {
+        // For specific week's goal
+        start = new Date(weekStart);
+    } else {
+        // For current week
+        start = getWeekDateRange().start;
+    }
+    
+    // Always calculate end as Sunday of the week
+    end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+
     let totalHours = 0;
     const categoryUpper = category.toUpperCase();
 
@@ -876,36 +905,52 @@ function isCurrentWeek(date) {
 function getBacklogGoals() {
     if (!weeklyGoals || !weeklyGoals.length) return [];
     
+    const currentWeekStart = getWeekDateRange().start;
+    
     return weeklyGoals
         .filter(goal => {
             if (!goal.weekStart) return false;
-            return !isCurrentWeek(new Date(goal.weekStart)) && 
-                   (calculateGoalProgress(goal.category) / goal.hours) * 100 < 100;
-        });
+            const goalWeekStart = new Date(goal.weekStart);
+            const progress = (calculateGoalProgress(goal.category, goal.weekStart) / goal.hours) * 100;
+            
+            // Include goals from all previous weeks that aren't completed
+            return goalWeekStart < currentWeekStart && progress < 100;
+        })
+        .sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart)); // Sort by most recent first
 }
 
 function renderGoalsList(goals, container) {
     goals.sort((a, b) => {
-        const progressA = (calculateGoalProgress(a.category) / a.hours) * 100;
-        const progressB = (calculateGoalProgress(b.category) / a.hours) * 100;
+        // First sort by week (most recent first)
+        const weekDiff = new Date(b.weekStart) - new Date(a.weekStart);
+        if (weekDiff !== 0) return weekDiff;
+
+        // Then by progress (highest first)
+        const progressA = (calculateGoalProgress(a.category, a.weekStart) / a.hours) * 100;
+        const progressB = (calculateGoalProgress(b.category, b.weekStart) / b.hours) * 100;
         return progressB - progressA;
     });
 
     goals.forEach((goal) => {
-        const progress = calculateGoalProgress(goal.category);
+        const progress = calculateGoalProgress(goal.category, goal.weekStart);
         const percentage = Math.min((progress / goal.hours) * 100, 100);
         
-        // Find the actual index of the goal in the weeklyGoals array
         const goalIndex = weeklyGoals.findIndex(g => 
             g.category === goal.category && 
             g.weekStart === goal.weekStart
         );
         
+        const weekStart = new Date(goal.weekStart);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        
         const goalElement = document.createElement('div');
         goalElement.className = 'goal-item';
         goalElement.innerHTML = `
             <div class="goal-info">
-                <div><strong>${goal.category}</strong>: ${progress.toFixed(1)}/${goal.hours}h</div>
+                <div>
+                    <strong>${goal.category}</strong>: ${progress.toFixed(1)}/${goal.hours}h
+                </div>
                 <div class="progress goal-progress">
                     <div class="progress-bar ${percentage >= 100 ? 'bg-success' : percentage >= 70 ? 'bg-info' : 'bg-primary'}" 
                          role="progressbar" 
@@ -923,6 +968,15 @@ function renderGoalsList(goals, container) {
         `;
         container.appendChild(goalElement);
     });
+}
+
+// Add this new utility function
+function getWeekNumber(date) {
+    const target = new Date(date);
+    target.setHours(0, 0, 0, 0);
+    target.setDate(target.getDate() + 3 - (target.getDay() + 6) % 7);
+    const weekStart = new Date(target.getFullYear(), 0, 4);
+    return 1 + Math.round(((target - weekStart) / 86400000 - 3 + (weekStart.getDay() + 6) % 7) / 7);
 }
 
 /**
