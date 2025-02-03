@@ -861,19 +861,26 @@ async function deleteGoal(index) {
 
 function calculateGoalProgress(category, weekStart = null) {
     let start, end;
+    const now = new Date();
     
     if (weekStart) {
         // For specific week's goal
         start = new Date(weekStart);
+        // For backlog goals, count all sessions up to now
+        if (start < getWeekDateRange().start) {
+            end = now;
+        } else {
+            // For current/future week goals, only count that week
+            end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            end.setHours(23, 59, 59, 999);
+        }
     } else {
         // For current week
-        start = getWeekDateRange().start;
+        const weekRange = getWeekDateRange();
+        start = weekRange.start;
+        end = weekRange.end;
     }
-    
-    // Always calculate end as Sunday of the week
-    end = new Date(start);
-    end.setDate(start.getDate() + 6);
-    end.setHours(23, 59, 59, 999);
 
     let totalHours = 0;
     const categoryUpper = category.toUpperCase();
@@ -911,10 +918,7 @@ function getBacklogGoals() {
         .filter(goal => {
             if (!goal.weekStart) return false;
             const goalWeekStart = new Date(goal.weekStart);
-            const progress = (calculateGoalProgress(goal.category, goal.weekStart) / goal.hours) * 100;
-            
-            // Include goals from all previous weeks that aren't completed
-            return goalWeekStart < currentWeekStart && progress < 100;
+            return goalWeekStart < currentWeekStart;
         })
         .sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart)); // Sort by most recent first
 }
@@ -963,11 +967,64 @@ function renderGoalsList(goals, container) {
                 </div>
             </div>
             <div class="goal-actions">
+                <button class="btn btn-sm btn-outline-secondary edit-goal-btn" onclick="editGoal(${goalIndex})">
+                    <i class="bi bi-pencil"></i>
+                </button>
                 <button class="btn btn-danger btn-sm" onclick="deleteGoal(${goalIndex})">-</button>
             </div>
         `;
         container.appendChild(goalElement);
     });
+}
+
+async function editGoal(index) {
+    const goal = weeklyGoals[index];
+    document.getElementById('editGoalCategory').value = goal.category;
+    document.getElementById('editGoalHours').value = goal.hours;
+    
+    // Fix date display
+    const date = new Date(goal.weekStart);
+    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    document.getElementById('editGoalWeekStart').value = localDate.toISOString().split('T')[0];
+    
+    document.getElementById('editGoalModal').setAttribute('data-goal-index', index);
+    $('#editGoalModal').modal('show');
+}
+
+async function saveEditedGoal() {
+    const index = parseInt(document.getElementById('editGoalModal').getAttribute('data-goal-index'));
+    const category = document.getElementById('editGoalCategory').value.trim();
+    const hours = parseFloat(document.getElementById('editGoalHours').value);
+    
+    // Fix date handling
+    const selectedDate = document.getElementById('editGoalWeekStart').value;
+    const weekStart = new Date(selectedDate);
+    // Add timezone offset to keep the date as selected
+    weekStart.setMinutes(weekStart.getMinutes() + weekStart.getTimezoneOffset());
+    weekStart.setHours(0, 0, 0, 0);
+
+    if (!category || isNaN(hours) || hours <= 0) {
+        alert('Please fill all fields correctly');
+        return;
+    }
+
+    weeklyGoals[index] = {
+        ...weeklyGoals[index],
+        category,
+        hours,
+        weekStart: weekStart.toISOString(),
+        weekNumber: getWeekNumber(weekStart)
+    };
+
+    try {
+        await saveUserData();
+        $('#editGoalModal').modal('hide');
+        renderWeeklyGoals();
+        updateAnalytics();
+    } catch (err) {
+        console.error("Error updating goal:", err);
+        alert('Failed to update goal. Please try again.');
+    }
 }
 
 // Add this new utility function
@@ -1348,6 +1405,8 @@ function initializeEventListeners() {
             }
         }
     });
+
+    document.getElementById('saveEditedGoalBtn').addEventListener('click', saveEditedGoal);
 }
 
 /**

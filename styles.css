@@ -396,6 +396,7 @@ table td.actions.editing {
 .goal-actions {
     display: flex;
     gap: 5px;
+    align-items: center;
 }
 
 #backlogGoals {
@@ -808,4 +809,13 @@ table td.actions.editing {
 
 #productivityMetrics {
     transition: all 0.3s ease;
+}
+
+.edit-goal-btn {
+    padding: 0.25rem 0.5rem;
+    margin-right: 0.5rem;
+}
+
+.edit-goal-btn i {
+    font-size: 0.875rem;
 }
