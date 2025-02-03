@@ -741,6 +741,17 @@ table td.actions.editing {
     transition: width 0.6s ease;
 }
 
+#productivityDashboard .progress-text {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+    z-index: 1;
+    color: #000;
+    font-weight: bold;
+}
+
 #productivityDashboard h6 {
     font-weight: 600;
     margin-bottom: 0.25rem;
@@ -819,6 +830,12 @@ table td.actions.editing {
 .edit-goal-btn {
     padding: 0.25rem 0.5rem;
     margin-right: 0.5rem;
+    border: none;
+    background: none;
+}
+
+.edit-goal-btn:hover {
+    border-radius: 4px;
 }
 
 .edit-goal-btn i {

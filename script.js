@@ -912,14 +912,8 @@ function calculateGoalProgress(category, weekStart = null) {
     sessions.forEach(session => {
         const sessionDate = new Date(session.started);
         if (sessionDate >= start && sessionDate <= end) {
-            let sessionCategory;
-            if (session.topic.includes(':')) {
-                sessionCategory = session.topic.split(':')[0].trim().toUpperCase();
-            } else {
-                sessionCategory = session.topic.split(' ')[0].trim().toUpperCase();
-            }
-            
-            if (sessionCategory === categoryUpper) {
+            // Check if the category (can be multiple words) appears anywhere in the topic
+            if (session.topic.toUpperCase().includes(categoryUpper)) {
                 totalHours += (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60);
             }
         }
@@ -1283,9 +1277,9 @@ function addProductivityDashboard() {
                             </small>
                         </div>
                         <div class="progress" style="height: 20px;">
-                            <div class="progress-bar bg-primary" role="progressbar" 
-                                 style="width: ${scores.productivity}%">
-                                ${scores.productivity}%
+                            <div class="progress-bar bg-primary text-dark" role="progressbar" 
+                                 style="width: ${Math.min(scores.productivity, 100)}%">
+                                <span class="progress-text">${scores.productivity}%</span>
                             </div>
                         </div>
                     </li>
@@ -1295,9 +1289,9 @@ function addProductivityDashboard() {
                             <small class="text-muted">Days active this week</small>
                         </div>
                         <div class="progress" style="height: 20px;">
-                            <div class="progress-bar bg-success" role="progressbar" 
+                            <div class="progress-bar bg-success text-dark" role="progressbar" 
                                  style="width: ${scores.consistency}%">
-                                ${scores.consistency}%
+                                <span class="progress-text">${scores.consistency}%</span>
                             </div>
                         </div>
                     </li>
@@ -1307,9 +1301,9 @@ function addProductivityDashboard() {
                             <small class="text-muted">Sessions > 45 minutes</small>
                         </div>
                         <div class="progress" style="height: 20px;">
-                            <div class="progress-bar bg-info" role="progressbar" 
+                            <div class="progress-bar bg-info text-dark" role="progressbar" 
                                  style="width: ${scores.focus}%">
-                                ${scores.focus}%
+                                <span class="progress-text">${scores.focus}%</span>
                             </div>
                         </div>
                     </li>
