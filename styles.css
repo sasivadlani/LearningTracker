@@ -123,6 +123,9 @@ body {
     align-items: center;
     padding: 5px;
     overflow: hidden;
+    cursor: move; /* Show move cursor */
+    user-select: none; /* Prevent text selection while dragging */
+    transition: background-color 0.2s ease;
 }
 
 #todoList ul li .form-check {
@@ -130,6 +133,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    cursor: move;
+    /* margin-right: 10px; */
 }
 
 #todoList ul li .form-check input[type="checkbox"] {
@@ -818,4 +823,20 @@ table td.actions.editing {
 
 .edit-goal-btn i {
     font-size: 0.875rem;
+}
+
+/* Add styles for the drag handle */
+.handle {
+    display: none;
+}
+
+.sortable-ghost {
+    opacity: 0.5;
+    background-color: #e9ecef !important;
+    border: 2px dashed #adb5bd !important;
+}
+
+.sortable-drag {
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }

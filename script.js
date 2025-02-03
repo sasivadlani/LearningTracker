@@ -646,7 +646,8 @@ function loadTodos(todoList) {
     todos.forEach((todo, index) => {
         const li = document.createElement("li");
         li.setAttribute('data-full-text', todo.text);
-        const status = todo.status || 'unchecked'; // Default to unchecked if status doesn't exist
+        li.setAttribute('data-id', index);
+        const status = todo.status || 'unchecked';
         li.className = `list-group-item d-flex justify-content-between align-items-center ${status}`;
         li.innerHTML = `
             <div class="form-check">
@@ -660,11 +661,34 @@ function loadTodos(todoList) {
         `;
         domElements.todoItems.appendChild(li);
         
-        // Set indeterminate state if needed
         if (status === 'intermediate') {
             li.querySelector('input[type="checkbox"]').indeterminate = true;
         }
     });
+
+    // Initialize Sortable with modified options
+    if (!domElements.todoItems.sortable) {
+        domElements.todoItems.sortable = new Sortable(domElements.todoItems, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            filter: '.form-check-input, .btn', // Prevent dragging from checkbox and delete button
+            onEnd: async function(evt) {
+                const newIndex = evt.newIndex;
+                const oldIndex = evt.oldIndex;
+                
+                // Reorder the todos array
+                const item = todos.splice(oldIndex, 1)[0];
+                todos.splice(newIndex, 0, item);
+                
+                // Save the new order
+                await saveUserData();
+                
+                // Refresh the display without full reload
+                loadTodos(todos);
+            }
+        });
+    }
 }
 
 async function addTodo() {
@@ -1305,7 +1329,6 @@ function addProductivityDashboard() {
         toggleIcon.textContent = isVisible ? '▼' : '▲';
     });
 }
-// ...existing code...
 
 // Add after loadUserData function
 async function saveWeeklyTarget(target) {
@@ -1407,6 +1430,24 @@ function initializeEventListeners() {
     });
 
     document.getElementById('saveEditedGoalBtn').addEventListener('click', saveEditedGoal);
+
+    // Add styles for drag and drop
+    const style = document.createElement('style');
+    style.textContent = `
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #c8ebfb;
+        }
+        
+        .handle {
+            color: #999;
+        }
+        
+        .handle:hover {
+            color: #333;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 /**
