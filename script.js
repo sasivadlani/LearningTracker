@@ -350,6 +350,9 @@ async function handleClockOut() {
 function loadSessions(sessions) {
     const sessionsContainer = document.getElementById("sessionsContainer");
     sessionsContainer.innerHTML = "";
+    
+    // Get today's date for comparison
+    const today = new Date().toLocaleDateString();
 
     // Group sessions by month and date
     const sessionsByMonth = sessions.reduce((acc, session) => {
@@ -385,49 +388,52 @@ function loadSessions(sessions) {
                 <span class="icon">></span>
             </button>
             <div class="collapsible-content" style="${isCurrentMonth ? 'display:block;' : 'display:none;'}">
-                ${Object.entries(monthData.dates).sort((a, b) => new Date(b[0]) - new Date(a[0])).map(([date, dateSessions]) => `
-                    <button class="collapsible date-collapsible ${isCurrentMonth ? 'active' : ''}">
-                        ${date}
-                        <span class="icon">></span>
-                    </button>
-                    <div class="collapsible-content" style="${isCurrentMonth ? 'display:block;' : 'display:none;'}">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th class="topic">Topic</th>
-                                    <th class="started">Started</th>
-                                    <th class="ended">Ended</th>
-                                    <th class="totalTime">Total Time</th>
-                                    <th class="comment">Comment</th>
-                                    <th class="actions">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${dateSessions.map((session, index) => `
-                                    <tr data-session-index="${sessions.indexOf(session)}">
-                                        <td class="topic-cell">
-                                            <input type="text" class="edit-input" value="${session.topic}" disabled />
-                                            <textarea class="topic-textarea" readonly></textarea>
-                                        </td>
-                                        <td><input type="text" class="edit-input" value="${formatTime(session.started)}" disabled /></td>
-                                        <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
-                                        <td>${session.totalTime}</td>
-                                        <td class="comment-cell">
-                                            <input type="text" class="edit-input comment-input" value="${session.comment || ''}" disabled />
-                                            <textarea class="comment-textarea" readonly></textarea>
-                                        </td>
-                                        <td class="actions">
-                                            <button class="edit-btn btn btn-primary" data-session-index="${sessions.indexOf(session)}">Edit</button>
-                                            <button class="save-btn btn btn-success" data-session-index="${sessions.indexOf(session)}" style="display: none;">Save</button>
-                                            <button class="cancel-btn btn btn-secondary" data-session-index="${sessions.indexOf(session)}" style="display: none;">Cancel</button>
-                                            <button class="delete-btn btn btn-danger" data-session-index="${sessions.indexOf(session)}">Delete</button>
-                                        </td>
+                ${Object.entries(monthData.dates).sort((a, b) => new Date(b[0]) - new Date(a[0])).map(([date, dateSessions]) => {
+                    const isToday = new Date(date).toLocaleDateString() === today;
+                    return `
+                        <button class="collapsible date-collapsible ${isToday ? 'active' : ''}">
+                            ${date}
+                            <span class="icon">></span>
+                        </button>
+                        <div class="collapsible-content" style="${isToday ? 'display:block;' : 'display:none;'}">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th class="topic">Topic</th>
+                                        <th class="started">Started</th>
+                                        <th class="ended">Ended</th>
+                                        <th class="totalTime">Total Time</th>
+                                        <th class="comment">Comment</th>
+                                        <th class="actions">Actions</th>
                                     </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `).join('')}
+                                </thead>
+                                <tbody>
+                                    ${dateSessions.map((session, index) => `
+                                        <tr data-session-index="${sessions.indexOf(session)}">
+                                            <td class="topic-cell">
+                                                <input type="text" class="edit-input" value="${session.topic}" disabled />
+                                                <textarea class="topic-textarea" readonly></textarea>
+                                            </td>
+                                            <td><input type="text" class="edit-input" value="${formatTime(session.started)}" disabled /></td>
+                                            <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
+                                            <td>${session.totalTime}</td>
+                                            <td class="comment-cell">
+                                                <input type="text" class="edit-input comment-input" value="${session.comment || ''}" disabled />
+                                                <textarea class="comment-textarea" readonly></textarea>
+                                            </td>
+                                            <td class="actions">
+                                                <button class="edit-btn btn btn-primary" data-session-index="${sessions.indexOf(session)}">Edit</button>
+                                                <button class="save-btn btn btn-success" data-session-index="${sessions.indexOf(session)}" style="display: none;">Save</button>
+                                                <button class="cancel-btn btn btn-secondary" data-session-index="${sessions.indexOf(session)}" style="display: none;">Cancel</button>
+                                                <button class="delete-btn btn btn-danger" data-session-index="${sessions.indexOf(session)}">Delete</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }).join('')}
             </div>
         `;
         sessionsContainer.appendChild(monthSection);
