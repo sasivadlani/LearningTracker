@@ -768,6 +768,11 @@ async function loadWeeklyGoals() {
     }
 }
 
+function isGoalCompleted(goal) {
+    const progress = calculateGoalProgress(goal.category, goal.weekStart);
+    return progress >= goal.hours;
+}
+
 function renderWeeklyGoals() {
     const goalsContainer = document.getElementById('goalsContainer');
     if (!goalsContainer) return;
@@ -775,17 +780,23 @@ function renderWeeklyGoals() {
     const { start, end } = getWeekDateRange();
     const dateRange = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
     
-    // Get current week's goals
+    // Get current week's goals (excluding completed ones)
     const currentWeekGoals = weeklyGoals.filter(goal => 
-        !goal.weekStart || isCurrentWeek(new Date(goal.weekStart)));
+        (!goal.weekStart || isCurrentWeek(new Date(goal.weekStart))) && 
+        !isGoalCompleted(goal)
+    );
 
-    // Get backlog goals
-    const backlogGoals = getBacklogGoals();
+    // Get backlog goals (excluding completed ones)
+    const backlogGoals = getBacklogGoals().filter(goal => !isGoalCompleted(goal));
+
+    // Get completed goals
+    const completedGoals = weeklyGoals.filter(goal => isGoalCompleted(goal));
 
     goalsContainer.innerHTML = `
         <div class="text-muted small mb-2">Week: ${dateRange}</div>
         <div id="currentWeekGoals"></div>
         ${backlogGoals.length ? '<div id="backlogGoals" class="mt-3"><h5 class="text-danger">Backlog</h5></div>' : ''}
+        ${completedGoals.length ? '<div id="completedGoals" class="mt-3"><h5 class="text-success">Completed Goals</h5></div>' : ''}
     `;
 
     // Render current week's goals
@@ -796,6 +807,12 @@ function renderWeeklyGoals() {
     if (backlogGoals.length) {
         const backlogContainer = document.getElementById('backlogGoals');
         renderGoalsList(backlogGoals, backlogContainer);
+    }
+
+    // Render completed goals if exists
+    if (completedGoals.length) {
+        const completedContainer = document.getElementById('completedGoals');
+        renderGoalsList(completedGoals, completedContainer);
     }
 }
 

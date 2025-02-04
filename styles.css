@@ -879,3 +879,20 @@ table td.actions.editing {
     font-size: 0.8rem;
     vertical-align: middle;
 }
+
+#completedGoals {
+    background-color: #e8f5e9;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 15px;
+}
+
+#completedGoals h5 {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+#completedGoals .goal-item {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-left: 3px solid #28a745;
+}
