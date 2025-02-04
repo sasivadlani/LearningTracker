@@ -319,6 +319,7 @@ async function handleClockIn() {
     domElements.currentTopic.textContent = topic + ": ";
     domElements.topicInput.value = ""; // Clear the topic input
     startTimer(currentSession.started);
+    renderWeeklyGoals(); // Add this line at the end
 }
 
 async function handleClockOut() {
@@ -341,6 +342,7 @@ async function handleClockOut() {
         updateDailyStudyChart();
         addProductivityDashboard(); // Add this line
         renderWeeklyGoals();
+        updateAnalytics();
         domElements.currentTopic.textContent = "";
         domElements.timer.textContent = "00:00:00";
     } catch (err) {
@@ -941,6 +943,12 @@ function getBacklogGoals() {
         .sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart)); // Sort by most recent first
 }
 
+function isGoalActive(category) {
+    if (!currentSession.started) return false;
+    const categoryUpper = category.toUpperCase();
+    return currentSession.topic.toUpperCase().includes(categoryUpper);
+}
+
 function renderGoalsList(goals, container) {
     goals.sort((a, b) => {
         // First sort by week (most recent first)
@@ -956,6 +964,7 @@ function renderGoalsList(goals, container) {
     goals.forEach((goal) => {
         const progress = calculateGoalProgress(goal.category, goal.weekStart);
         const percentage = Math.min((progress / goal.hours) * 100, 100);
+        const isActive = isGoalActive(goal.category);
         
         const goalIndex = weeklyGoals.findIndex(g => 
             g.category === goal.category && 
@@ -967,11 +976,13 @@ function renderGoalsList(goals, container) {
         weekEnd.setDate(weekStart.getDate() + 6);
         
         const goalElement = document.createElement('div');
-        goalElement.className = 'goal-item';
+        goalElement.className = `goal-item ${isActive ? 'active-goal' : ''}`;
         goalElement.innerHTML = `
             <div class="goal-info">
                 <div>
-                    <strong>${goal.category}</strong>: ${progress.toFixed(1)}/${goal.hours}h
+                    <strong>${goal.category}</strong>
+                    ${isActive ? '<span class="active-indicator"><i class="bi bi-clock-fill text-success"></i></span>' : ''}
+                    : ${progress.toFixed(1)}/${goal.hours}h
                 </div>
                 <div class="progress goal-progress">
                     <div class="progress-bar ${percentage >= 100 ? 'bg-success' : percentage >= 70 ? 'bg-info' : 'bg-primary'}" 

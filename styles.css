@@ -857,3 +857,25 @@ table td.actions.editing {
     background-color: #fff;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
+
+/* Add styles for the active goal indicator */
+.goal-item.active-goal {
+    background-color: #e8fff3;
+    border-left: 3px solid #28a745;
+}
+
+.active-indicator {
+    margin-left: 5px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.goal-item .active-indicator i {
+    font-size: 0.8rem;
+    vertical-align: middle;
+}
