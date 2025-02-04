@@ -951,11 +951,18 @@ function isGoalActive(category) {
 
 function renderGoalsList(goals, container) {
     goals.sort((a, b) => {
-        // First sort by week (most recent first)
+        // If there's an active session, prioritize the active goal
+        if (currentSession.started) {
+            const aIsActive = isGoalActive(a.category);
+            const bIsActive = isGoalActive(b.category);
+            if (aIsActive && !bIsActive) return -1;
+            if (!aIsActive && bIsActive) return 1;
+        }
+
+        // If neither is active or no current session, use the original sorting
         const weekDiff = new Date(b.weekStart) - new Date(a.weekStart);
         if (weekDiff !== 0) return weekDiff;
 
-        // Then by progress (highest first)
         const progressA = (calculateGoalProgress(a.category, a.weekStart) / a.hours) * 100;
         const progressB = (calculateGoalProgress(b.category, b.weekStart) / b.hours) * 100;
         return progressB - progressA;
