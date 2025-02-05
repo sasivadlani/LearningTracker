@@ -282,7 +282,41 @@ function startTimer(startedTime) {
         const minutes = Math.floor((elapsed % 3600) / 60);
         const seconds = elapsed % 60;
         domElements.timer.textContent = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        if (hours >= 6) {
+            autoClockOut();
+        }
+        
+        if (seconds === 0) {
+            renderWeeklyGoals();
+        }
     }, 1000);
+}
+
+async function autoClockOut() {
+    stopTimer();
+    const sixHoursAgo = new Date(Date.now() - (6 * 60 * 60 * 1000));
+    
+    currentSession.ended = sixHoursAgo.getTime();
+    currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
+    currentSession.autoClockOut = true; // Add flag for auto clock-out
+    currentSession.comment = "Auto clocked out after 6 hours of inactivity"; // Add default comment
+    
+    sessions.unshift(currentSession);
+    
+    try {
+        currentSession = {};
+        await saveUserData();
+        domElements.clockInBtn.disabled = false;
+        domElements.clockOutBtn.disabled = true;
+        domElements.currentTopic.textContent = "";
+        domElements.timer.textContent = "00:00:00";
+        
+        loadSessions(sessions);
+        updateAnalytics();
+        alert('Session was automatically clocked out after 6 hours. Please review and edit if needed.');
+    } catch (err) {
+        console.error("Error in auto clock-out:", err);
+    }
 }
 
 function stopTimer() {
@@ -413,7 +447,8 @@ function loadSessions(sessions) {
                                 </thead>
                                 <tbody>
                                     ${dateSessions.map((session, index) => `
-                                        <tr data-session-index="${sessions.indexOf(session)}">
+                                        <tr data-session-index="${sessions.indexOf(session)}" 
+                                            class="${session.autoClockOut ? 'auto-clockout-row' : ''}">
                                             <td class="topic-cell">
                                                 <input type="text" class="edit-input" value="${session.topic}" disabled />
                                                 <textarea class="topic-textarea" readonly></textarea>
@@ -422,7 +457,11 @@ function loadSessions(sessions) {
                                             <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
                                             <td>${session.totalTime}</td>
                                             <td class="comment-cell">
-                                                <input type="text" class="edit-input comment-input" value="${session.comment || ''}" disabled />
+                                                <input type="text" class="edit-input comment-input" 
+                                                    value="${session.comment || ''}" 
+                                                    disabled 
+                                                    style="${session.autoClockOut ? 'color: #856404; font-style: italic;' : ''}"
+                                                />
                                                 <textarea class="comment-textarea" readonly></textarea>
                                             </td>
                                             <td class="actions">
@@ -431,6 +470,9 @@ function loadSessions(sessions) {
                                                 <button class="cancel-btn btn btn-secondary" data-session-index="${sessions.indexOf(session)}" style="display: none;">Cancel</button>
                                                 <button class="delete-btn btn btn-danger" data-session-index="${sessions.indexOf(session)}">Delete</button>
                                             </td>
+                                            ${session.autoClockOut ? `<div class="alert alert-warning mt-1 mb-1" role="alert">
+                                                <i class="bi bi-exclamation-triangle"></i> Auto clocked out after 6 hours
+                                            </div>` : ''}
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -516,6 +558,9 @@ function loadSessions(sessions) {
                 totalTime: newTotalTime,
                 comment: updatedComment
             };
+
+            // Remove autoClockOut flag when session is edited
+            delete sessions[index].autoClockOut;
 
             // Save to DynamoDB
             const params = {
@@ -931,12 +976,16 @@ function calculateGoalProgress(category, weekStart = null) {
     sessions.forEach(session => {
         const sessionDate = new Date(session.started);
         if (sessionDate >= start && sessionDate <= end) {
-            // Check if the category (can be multiple words) appears anywhere in the topic
             if (session.topic.toUpperCase().includes(categoryUpper)) {
                 totalHours += (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60);
             }
         }
     });
+
+    if (currentSession.started && currentSession.topic.toUpperCase().includes(categoryUpper)) {
+        const activeSessionHours = (Date.now() - new Date(currentSession.started).getTime()) / (1000 * 60 * 60);
+        totalHours += activeSessionHours;
+    }
 
     return totalHours;
 }
