@@ -22,8 +22,35 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Lint job
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: |
+          set -e
+          npm install
+      - name: Run lint
+        run: |
+          set -e
+            npm run lint -- --quiet --format json --output-file eslint-report.json || (npm run lint -- --quiet --format stylish && exit 1)
+      - name: Upload lint results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: lint-report
+          path: eslint-report.json
+          retention-days: 1
+
   # Build job
   build:
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

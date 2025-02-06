@@ -140,8 +140,8 @@ function formatDateForDisplay(date) {
   return new Date(date).toLocaleDateString('en-GB', options);
 }
 
-function calculateTotalTime(started, ended) {
-  const duration = (new Date(ended) - new Date(started)) / 1000; // Difference in seconds
+function calculateTotalTime(milliseconds) {
+  const duration = milliseconds / 1000; // Convert to seconds
   const hours = Math.floor(duration / 3600);
   const minutes = Math.floor((duration % 3600) / 60);
   const seconds = Math.floor(duration % 60);
@@ -247,7 +247,7 @@ async function exportToCSV() {
   }
 
   const csvRows = [];
-  const headers = ['Topic', 'Started', 'Ended', 'Total Time', 'Comment'];
+  const headers = ['Topic', 'Started', 'Ended', 'Break', 'Total Time', 'Comment'];
   csvRows.push(headers.join(','));
 
   sessions.forEach((session) => {
@@ -255,6 +255,7 @@ async function exportToCSV() {
       session.topic,
       new Date(session.started).toLocaleString(),
       new Date(session.ended).toLocaleString(),
+      session.breakTime || 0,
       session.totalTime,
       session.comment || '',
     ];
@@ -362,8 +363,48 @@ async function handleClockOut() {
   if (!currentSession.started) return;
 
   currentSession.ended = Date.now();
-  currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
-  currentSession.comment = ''; // Add empty comment field
+
+  // Calculate total session time in minutes
+  const totalSessionMinutes =
+    (currentSession.ended - new Date(currentSession.started).getTime()) / (1000 * 60);
+
+  // Prompt for break time
+  let breakMinutes;
+  let isValidBreakTime = false;
+
+  while (!isValidBreakTime) {
+    breakMinutes = prompt('Enter break time in minutes (if any):', '0');
+
+    // Handle cancel or empty input
+    if (breakMinutes === null) {
+      return; // Exit clock out if user cancels
+    }
+
+    breakMinutes = parseInt(breakMinutes);
+
+    // Validate break time
+    if (isNaN(breakMinutes) || breakMinutes < 0) {
+      alert('Please enter a valid number of minutes (0 or positive number)');
+    } else if (breakMinutes > totalSessionMinutes) {
+      alert(
+        'Error: Break time cannot be longer than the total session time!\n' +
+          `Session duration: ${Math.floor(totalSessionMinutes)} minutes\n` +
+          `Entered break time: ${breakMinutes} minutes`
+      );
+    } else {
+      isValidBreakTime = true;
+    }
+  }
+
+  currentSession.breakTime = breakMinutes;
+
+  // Calculate total time excluding break
+  const totalMilliseconds = currentSession.ended - new Date(currentSession.started).getTime();
+  const breakMilliseconds = currentSession.breakTime * 60 * 1000;
+  const netMilliseconds = totalMilliseconds - breakMilliseconds;
+
+  currentSession.totalTime = calculateTotalTime(netMilliseconds);
+  currentSession.comment = '';
 
   domElements.clockInBtn.disabled = false;
   domElements.clockOutBtn.disabled = true;
@@ -446,6 +487,7 @@ function loadSessions(sessions) {
                                         <th class="topic">Topic</th>
                                         <th class="started">Started</th>
                                         <th class="ended">Ended</th>
+                                        <th class="breakTime">Break</th>
                                         <th class="totalTime">Total Time</th>
                                         <th class="comment">Comment</th>
                                         <th class="actions">Actions</th>
@@ -462,6 +504,7 @@ function loadSessions(sessions) {
                                             </td>
                                             <td><input type="text" class="edit-input" value="${formatTime(session.started)}" disabled /></td>
                                             <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
+                                            <td><input type="number" class="edit-input" value="${session.breakTime || 0}" disabled /></td>
                                             <td>${session.totalTime}</td>
                                             <td class="comment-cell tooltip-cell" data-tooltip="${session.comment || ''}">
                                                 <input type="text" class="edit-input comment-input" 
@@ -578,7 +621,8 @@ function loadSessions(sessions) {
     const updatedTopic = row.cells[0].querySelector('.edit-input').value.trim();
     const updatedStarted = row.cells[1].querySelector('.edit-input').value.trim();
     const updatedEnded = row.cells[2].querySelector('.edit-input').value.trim();
-    const updatedComment = row.cells[4].querySelector('.comment-input').value.trim();
+    const updatedBreakTime = parseInt(row.cells[3].querySelector('.edit-input').value) || 0;
+    const updatedComment = row.cells[5].querySelector('.comment-input').value.trim();
 
     if (!updatedTopic || !updatedStarted || !updatedEnded) {
       alert('All fields (Topic, Started, Ended) must be filled!');
@@ -586,7 +630,6 @@ function loadSessions(sessions) {
     }
 
     try {
-      // Parse updated time and recalculate total time
       const startedTime = new Date(
         `${formatDate(sessions[sessionIndex].date)} ${updatedStarted}`
       ).getTime();
@@ -602,7 +645,30 @@ function loadSessions(sessions) {
         }
         endedTime += 24 * 60 * 60 * 1000;
       }
-      const newTotalTime = calculateTotalTime(startedTime, endedTime);
+
+      // Calculate total session time in minutes
+      const totalSessionMinutes = (endedTime - startedTime) / (1000 * 60);
+
+      // Validate break time
+      if (updatedBreakTime < 0) {
+        alert('Break time cannot be negative');
+        return;
+      }
+
+      if (updatedBreakTime > totalSessionMinutes) {
+        alert(
+          'Error: Break time cannot be longer than the total session time!\n' +
+            `Session duration: ${Math.floor(totalSessionMinutes)} minutes\n` +
+            `Entered break time: ${updatedBreakTime} minutes`
+        );
+        return;
+      }
+
+      const totalMilliseconds = endedTime - startedTime;
+      const breakMilliseconds = updatedBreakTime * 60 * 1000;
+      const netMilliseconds = totalMilliseconds - breakMilliseconds;
+
+      const newTotalTime = calculateTotalTime(netMilliseconds);
 
       // Update session
       sessions[sessionIndex] = {
@@ -610,6 +676,7 @@ function loadSessions(sessions) {
         topic: updatedTopic,
         started: startedTime,
         ended: endedTime,
+        breakTime: updatedBreakTime,
         totalTime: newTotalTime,
         comment: updatedComment,
       };

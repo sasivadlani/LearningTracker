@@ -970,3 +970,17 @@ table td.actions .btn i {
     color: #856404;
     margin-right: 4px;
 }
+
+table th.breakTime,
+table td.breakTime {
+    width: 75px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+table td.breakTime .edit-input {
+    width: 50px;
+    text-align: center;
+    padding: 2px;
+}
