@@ -449,26 +449,34 @@ function loadSessions(sessions) {
                                     ${dateSessions.map((session, index) => `
                                         <tr data-session-index="${sessions.indexOf(session)}" 
                                             class="${session.autoClockOut ? 'auto-clockout-row' : ''}">
-                                            <td class="topic-cell">
+                                            <td class="topic-cell tooltip-cell" data-tooltip="${session.topic}">
                                                 <input type="text" class="edit-input" value="${session.topic}" disabled />
-                                                <textarea class="topic-textarea" readonly></textarea>
                                             </td>
                                             <td><input type="text" class="edit-input" value="${formatTime(session.started)}" disabled /></td>
                                             <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
                                             <td>${session.totalTime}</td>
-                                            <td class="comment-cell">
+                                            <td class="comment-cell tooltip-cell" data-tooltip="${session.comment || ''}">
                                                 <input type="text" class="edit-input comment-input" 
                                                     value="${session.comment || ''}" 
                                                     disabled 
                                                     style="${session.autoClockOut ? 'color: #856404; font-style: italic;' : ''}"
                                                 />
-                                                <textarea class="comment-textarea" readonly></textarea>
                                             </td>
                                             <td class="actions">
-                                                <button class="edit-btn btn btn-primary" data-session-index="${sessions.indexOf(session)}">Edit</button>
-                                                <button class="save-btn btn btn-success" data-session-index="${sessions.indexOf(session)}" style="display: none;">Save</button>
-                                                <button class="cancel-btn btn btn-secondary" data-session-index="${sessions.indexOf(session)}" style="display: none;">Cancel</button>
-                                                <button class="delete-btn btn btn-danger" data-session-index="${sessions.indexOf(session)}">Delete</button>
+                                                <div class="btn-group-vertical">
+                                                    <button class="edit-btn btn btn-outline-primary" data-session-index="${sessions.indexOf(session)}" title="Edit">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button class="save-btn btn btn-outline-success" data-session-index="${sessions.indexOf(session)}" style="display: none;" title="Save">
+                                                        <i class="bi bi-check"></i>
+                                                    </button>
+                                                    <button class="cancel-btn btn btn-outline-secondary" data-session-index="${sessions.indexOf(session)}" style="display: none;" title="Cancel">
+                                                        <i class="bi bi-x"></i>
+                                                    </button>
+                                                    <button class="delete-btn btn btn-outline-danger" data-session-index="${sessions.indexOf(session)}" title="Delete">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
                                             </td>
                                             ${session.autoClockOut ? `<div class="alert alert-warning mt-1 mb-1" role="alert">
                                                 <i class="bi bi-exclamation-triangle"></i> Auto clocked out after 6 hours
@@ -497,55 +505,80 @@ function loadSessions(sessions) {
 
     // Add Edit functionality
     document.querySelectorAll(".edit-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            const index = e.target.dataset.sessionIndex;
-            const row = sessionsContainer.querySelector(`tr[data-session-index="${index}"]`);
-            const inputs = row.querySelectorAll(".edit-input");
-            
-            inputs.forEach(input => {
-                input.disabled = false;
-                // Add keypress event listener for Enter key
-                input.addEventListener("keypress", async (e) => {
-                    if (e.key === "Enter") {
-                        const saveBtn = row.querySelector(".save-btn");
-                        saveBtn.click(); // Trigger save button click
-                    }
-                });
-            });
-            
-            row.querySelector(".edit-btn").style.display = "none";
-            row.querySelector(".save-btn").style.display = "inline-block";
-            row.querySelector(".cancel-btn").style.display = "inline-block";
-            row.querySelector(".actions").classList.add("editing");
-        });
+        btn.addEventListener("click", handleEdit);
     });
 
-    // Save Edited Session
-    document.querySelectorAll(".save-btn").forEach(btn => {
-        btn.addEventListener("click", async (e) => {
-            const index = e.target.dataset.sessionIndex;
-            const row = sessionsContainer.querySelector(`tr[data-session-index="${index}"]`);
+    // Add these new functions after the loadSessions function
+    function handleEdit(e) {
+        e.stopPropagation();
+        const button = e.target.closest('.edit-btn');
+        if (!button) return;
+        
+        const index = button.dataset.sessionIndex;
+        const row = button.closest('tr');
+        if (!row) return;
 
-            // Get updated values
-            const updatedTopic = row.cells[0].querySelector(".edit-input").value.trim();
-            const updatedStarted = row.cells[1].querySelector(".edit-input").value.trim();
-            const updatedEnded = row.cells[2].querySelector(".edit-input").value.trim();
-            const updatedComment = row.cells[4].querySelector(".comment-input").value.trim(); // Corrected cell index
+        const inputs = row.querySelectorAll(".edit-input");
+        inputs.forEach(input => {
+            input.disabled = false;
+            input.addEventListener("keypress", handleEnterKey);
+        });
+        
+        const editBtn = row.querySelector(".edit-btn");
+        const saveBtn = row.querySelector(".save-btn");
+        const cancelBtn = row.querySelector(".cancel-btn");
+        
+        if (editBtn) editBtn.style.display = "none";
+        if (saveBtn) saveBtn.style.display = "inline-block";
+        if (cancelBtn) cancelBtn.style.display = "inline-block";
+        row.querySelector(".actions").classList.add("editing");
+    }
 
-            if (!updatedTopic || !updatedStarted || !updatedEnded) {
-                alert("All fields (Topic, Started, Ended) must be filled!");
-                return;
+    function handleEnterKey(e) {
+        if (e.key === "Enter") {
+            const row = e.target.closest('tr');
+            if (row) {
+                const saveBtn = row.querySelector(".save-btn");
+                if (saveBtn) saveBtn.click();
             }
+        }
+    }
 
+    // Update Save functionality
+    document.querySelectorAll(".save-btn").forEach(btn => {
+        btn.addEventListener("click", handleSave);
+    });
+
+    async function handleSave(e) {
+        e.stopPropagation();
+        const button = e.target.closest('.save-btn');
+        if (!button) return;
+
+        const index = button.dataset.sessionIndex;
+        const row = button.closest('tr');
+        if (!row) return;
+
+        // Get updated values
+        const updatedTopic = row.cells[0].querySelector(".edit-input").value.trim();
+        const updatedStarted = row.cells[1].querySelector(".edit-input").value.trim();
+        const updatedEnded = row.cells[2].querySelector(".edit-input").value.trim();
+        const updatedComment = row.cells[4].querySelector(".comment-input").value.trim();
+
+        if (!updatedTopic || !updatedStarted || !updatedEnded) {
+            alert("All fields (Topic, Started, Ended) must be filled!");
+            return;
+        }
+
+        try {
             // Parse updated time and recalculate total time
             const startedTime = new Date(`${formatDate(sessions[index].date)} ${updatedStarted}`).getTime();
-            let endedTime = new Date(`${formatDate(sessions[index].date)} ${updatedEnded}`).getTime();
+            let endedTime = new Date(`${formatDate(sessions[index].date)} ${updatedEnded}`).getTime();          
             if (endedTime <= startedTime) {
                 const confirmNextDay = confirm("The entered end time is before the start time. Do you want to consider it as the next day?");
                 if (!confirmNextDay) {
                     return;
                 }
-                endedTime += 24 * 60 * 60 * 1000; // Add 24 hours to the end time
+                endedTime += 24 * 60 * 60 * 1000;
             }
             const newTotalTime = calculateTotalTime(startedTime, endedTime);
 
@@ -559,80 +592,76 @@ function loadSessions(sessions) {
                 comment: updatedComment
             };
 
-            // Remove autoClockOut flag when session is edited
             delete sessions[index].autoClockOut;
 
-            // Save to DynamoDB
-            const params = {
-                TableName: "LearningTracker",
-                Key: { userId },
-                UpdateExpression: "SET sessions = :updatedSessions",
-                ExpressionAttributeValues: {
-                    ":updatedSessions": sessions
-                }
-            };
-
-            try {
-                await docClient.update(params).promise();
-                const openSections = getOpenSections();
-                loadSessions(sessions); // Reload the table
-                setOpenSections(openSections);
-                renderWeeklyGoals(); 
-                row.querySelector(".actions").classList.remove("editing"); // Remove class after editing
-            } catch (err) {
-                console.error("Error updating session:", err);
-                alert("Error updating session. Check console.");
-            }
-        });
-    });
-
-    // Cancel Editing
-    document.querySelectorAll(".cancel-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
+            await saveUserData();
             const openSections = getOpenSections();
-            loadSessions(sessions); // Reload table without changes
+            loadSessions(sessions);
             setOpenSections(openSections);
-            renderWeeklyGoals(); 
-        });
+            renderWeeklyGoals();
+        } catch (err) {
+            console.error("Error updating session:", err);
+            alert("Error updating session. Check console.");
+        }
+    }
+
+    // Update Cancel functionality
+    document.querySelectorAll(".cancel-btn").forEach(btn => {
+        btn.addEventListener("click", handleCancel);
     });
 
-    // Add Delete functionality
+    function handleCancel(e) {
+        e.stopPropagation();
+        const openSections = getOpenSections();
+        loadSessions(sessions);
+        setOpenSections(openSections);
+        renderWeeklyGoals();
+    }
+
+    // Replace the delete button event listener section in loadSessions function
     document.querySelectorAll(".delete-btn").forEach(btn => {
         btn.addEventListener("click", async (e) => {
-            const index = e.target.dataset.sessionIndex;
-            const confirmDelete = confirm(`Are you sure you want to delete "${sessions[index].topic}"?`);
-            if (!confirmDelete) {
-                return;
-            }
-            sessions.splice(index, 1); // Remove the session from the local array
+            e.stopPropagation();
+            const button = e.target.closest('.delete-btn');
+            if (!button) return;
+            
+            const index = button.dataset.sessionIndex;
+            if (typeof index === 'undefined') return;
+            
+            const session = sessions[index];
+            if (!session) return;
 
-            // Update DynamoDB
-            const params = {
-                TableName: "LearningTracker",
-                Key: { userId },
-                UpdateExpression: "SET sessions = :updatedSessions",
-                ExpressionAttributeValues: {
-                    ":updatedSessions": sessions
-                }
-            };
+            const confirmDelete = confirm(`Are you sure you want to delete "${session.topic}"?`);
+            if (!confirmDelete) return;
+
+            // Remove the session from the array
+            sessions.splice(index, 1);
 
             try {
-                await docClient.update(params).promise();
+                // Save to DynamoDB
+                await saveUserData();
+
+                // Remember which sections were open
                 const openSections = getOpenSections();
-                loadSessions(sessions); // Reload the table with updated data
+                
+                // Reload the sessions display
+                loadSessions(sessions);
+                
+                // Restore open sections
                 setOpenSections(openSections);
+                
+                // Update goals and analytics
                 renderWeeklyGoals();
+                updateAnalytics();
             } catch (err) {
                 console.error("Error deleting session:", err);
-                alert("Error deleting session. Check console.");
+                alert("Failed to delete session. Please try again.");
+                // Restore the deleted session if save fails
+                sessions.splice(index, 0, session);
             }
         });
     });
 
-    // Add event listener for comment cells and inputs
-    document.querySelectorAll(".comment-cell, .topic-cell").forEach(element => {
-        element.addEventListener("click", toggleCommentDisplay);
-    });
     updateCategoryChart();
     updateDailyStudyChart();
 }
@@ -654,27 +683,6 @@ function setOpenSections(openSections) {
             button.nextElementSibling.style.display = "block";
         }
     });
-}
-
-function toggleCommentDisplay(event) {
-    const row = event.currentTarget.closest('tr');
-    const commentCell = row.querySelector('.comment-cell');
-    const topicCell = row.querySelector('.topic-cell');
-    
-    const commentInput = commentCell.querySelector(".comment-input");
-    const commentTextarea = commentCell.querySelector(".comment-textarea");
-    const topicInput = topicCell.querySelector(".edit-input");
-    const topicTextarea = topicCell.querySelector(".topic-textarea");
-
-    if (commentInput.disabled && topicInput.disabled) {
-        // Toggle both textareas
-        const isHidden = commentTextarea.style.display === "none" || !commentTextarea.style.display;
-        commentTextarea.style.display = isHidden ? "block" : "none";
-        topicTextarea.style.display = isHidden ? "block" : "none";
-        
-        commentTextarea.value = commentInput.value;
-        topicTextarea.value = topicInput.value;
-    }
 }
 
 /**
@@ -932,14 +940,7 @@ async function deleteGoal(index) {
     weeklyGoals.splice(index, 1);
     
     try {
-        await docClient.update({
-            TableName: "LearningTracker",
-            Key: { userId },
-            UpdateExpression: "SET weeklyGoals = :goals",
-            ExpressionAttributeValues: {
-                ":goals": weeklyGoals
-            }
-        }).promise();
+        await saveUserData();
         
         renderWeeklyGoals();
     } catch (err) {

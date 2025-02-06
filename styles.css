@@ -244,6 +244,36 @@ table td.actions.editing {
     width: auto;
 }
 
+/* Update action buttons styling */
+table td.actions {
+    width: 40px;
+    white-space: nowrap;
+    padding: 4px !important;
+    vertical-align: middle; /* Add this */
+}
+
+table td.actions .btn-group-vertical {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    justify-content: center; /* Add this */
+    align-items: center; /* Add this */
+}
+
+table td.actions .btn {
+    padding: 4px;
+    width: 32px;
+    height: 32px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+table td.actions .btn i {
+    font-size: 1rem;
+}
+
 /* Collapsible Styles */
 .collapsible {
     cursor: pointer;
@@ -286,36 +316,30 @@ table td.actions.editing {
     margin-bottom: 8px;
 }
 
-.comment-textarea {
-    display: none;
-    width: 100%;
-    height: auto;
-    border: none;
-    resize: none;
-    background: transparent;
-    overflow: hidden;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+.tooltip-cell {
+    position: relative;
 }
 
-.comment-cell {
-    cursor: pointer;
+.tooltip-cell::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 0%;
+    padding: 2px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 14px;
+    max-width: 400px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition-delay: 0.5s;
 }
 
-.topic-cell {
-    cursor: pointer;
-}
-
-.topic-textarea {
-    display: none;
-    width: 100%;
-    height: auto;
-    border: none;
-    resize: none;
-    background: transparent;
-    overflow: hidden;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+.tooltip-cell:hover::after {
+    opacity: 1;
+    visibility: visible;
 }
 
 .month-collapsible {
@@ -545,6 +569,11 @@ table td.actions.editing {
     
     .goal-actions {
         margin-top: 5px;
+    }
+
+    .btn-group-vertical {
+        justify-content: center;
+        align-items: center;
     }
 }
 
