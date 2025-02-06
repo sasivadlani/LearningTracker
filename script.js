@@ -294,12 +294,12 @@ function startTimer(startedTime) {
 
 async function autoClockOut() {
     stopTimer();
-    const sixHoursAgo = new Date(Date.now() - (6 * 60 * 60 * 1000));
     
-    currentSession.ended = sixHoursAgo.getTime();
+    const endTime = new Date(currentSession.started).getTime() + (6 * 60 * 60 * 1000);
+    currentSession.ended = endTime;
     currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
-    currentSession.autoClockOut = true; // Add flag for auto clock-out
-    currentSession.comment = "Auto clocked out after 6 hours of inactivity"; // Add default comment
+    currentSession.autoClockOut = true;
+    currentSession.comment = "Auto clocked out after 6 hours of inactivity";
     
     sessions.unshift(currentSession);
     
