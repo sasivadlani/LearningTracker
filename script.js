@@ -3,9 +3,9 @@
  */
 // AWS Configuration
 AWS.config.update({
-    region: "us-east-1", // Replace with your DynamoDB region
-    accessKeyId: "AWS_ACCESS_KEY_ID", // Replace with your Access Key ID
-    secretAccessKey: "AWS_SECRET_ACCESS_KEY" // Replace with your Secret Access Key
+  region: 'us-east-1', // Replace with your DynamoDB region
+  accessKeyId: 'AWS_ACCESS_KEY_ID', // Replace with your Access Key ID
+  secretAccessKey: 'AWS_SECRET_ACCESS_KEY', // Replace with your Secret Access Key
 });
 
 // DynamoDB Instance
@@ -17,22 +17,22 @@ const docClient = new AWS.DynamoDB.DocumentClient();
  */
 // Cache DOM elements
 const domElements = {
-    passwordInput: document.getElementById("passwordInput"),
-    userIdInput: document.getElementById("userIdInput"),
-    submitPassword: document.getElementById("submitPassword"),
-    mainContent: document.getElementById("mainContent"),
-    passwordPrompt: document.getElementById("passwordPrompt"),
-    topicInput: document.getElementById("topic"),
-    clockInBtn: document.getElementById("clockInBtn"),
-    clockOutBtn: document.getElementById("clockOutBtn"),
-    currentTopic: document.getElementById("currentTopic"),
-    timer: document.getElementById("timer"),
-    sessionsContainer: document.getElementById("sessionsContainer"),
-    localTimeElement: document.getElementById("localTime"),
-    todoList: document.getElementById("todoList"),
-    newTodoInput: document.getElementById("newTodo"),
-    addTodoBtn: document.getElementById("addTodoBtn"),
-    todoItems: document.getElementById("todoItems")
+  passwordInput: document.getElementById('passwordInput'),
+  userIdInput: document.getElementById('userIdInput'),
+  submitPassword: document.getElementById('submitPassword'),
+  mainContent: document.getElementById('mainContent'),
+  passwordPrompt: document.getElementById('passwordPrompt'),
+  topicInput: document.getElementById('topic'),
+  clockInBtn: document.getElementById('clockInBtn'),
+  clockOutBtn: document.getElementById('clockOutBtn'),
+  currentTopic: document.getElementById('currentTopic'),
+  timer: document.getElementById('timer'),
+  sessionsContainer: document.getElementById('sessionsContainer'),
+  localTimeElement: document.getElementById('localTime'),
+  todoList: document.getElementById('todoList'),
+  newTodoInput: document.getElementById('newTodo'),
+  addTodoBtn: document.getElementById('addTodoBtn'),
+  todoItems: document.getElementById('todoItems'),
 };
 
 /**
@@ -43,8 +43,8 @@ const domElements = {
 let currentSession = {};
 let sessions = [];
 let todos = [];
-let userId = null; 
-let interval = null; 
+let userId = null;
+let interval = null;
 let weeklyGoals = [];
 let weeklyTarget = 56; // Default target
 
@@ -52,381 +52,387 @@ let weeklyTarget = 56; // Default target
  * Authentication Functions
  */
 async function handleLogin() {
-    const inputUserId = domElements.userIdInput.value;
-    const password = domElements.passwordInput.value;
+  const inputUserId = domElements.userIdInput.value;
+  const password = domElements.passwordInput.value;
 
-    if (!inputUserId) {
-        alert("Please enter a User ID");
-        return;
+  if (!inputUserId) {
+    alert('Please enter a User ID');
+    return;
+  }
+
+  const params = {
+    TableName: 'LearningTracker',
+    Key: { userId: inputUserId },
+  };
+
+  try {
+    const data = await docClient.get(params).promise();
+    if (!data.Item) {
+      alert('User ID not found');
+      return;
     }
 
-    const params = {
-        TableName: "LearningTracker",
-        Key: { userId: inputUserId }
-    };
-
-    try {
-        const data = await docClient.get(params).promise();
-        if (!data.Item) {
-            alert("User ID not found");
-            return;
-        }
-
-        if (data.Item.password === password) {
-            userId = inputUserId; // Set the userId after successful login
-            await loadUserData();
-        } else {
-            alert("Invalid Password");
-        }
-    } catch (err) {
-        console.error("Login error:", err);
-        alert("Login failed. Please try again.");
+    if (data.Item.password === password) {
+      userId = inputUserId; // Set the userId after successful login
+      await loadUserData();
+    } else {
+      alert('Invalid Password');
     }
+  } catch (err) {
+    console.error('Login error:', err);
+    alert('Login failed. Please try again.');
+  }
 }
 
 async function handleLogout() {
-    if (currentSession.started) {
-        stopTimer();
-        currentSession.ended = Date.now();
-        currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
-        sessions.push({ ...currentSession });
-
-        try {
-            currentSession = {};
-            await saveUserData();
-        } catch (err) {
-            console.error("Error saving session on logout:", err);
-        }
-    }
-
-    // Reset UI elements
-    domElements.clockInBtn.disabled = false;
-    domElements.clockOutBtn.disabled = true;
-    domElements.currentTopic.textContent = "";
-    domElements.timer.textContent = "00:00:00";
-
-    // Reset state
-    currentSession = {};
-    sessions = [];
-    todos = [];
+  if (currentSession.started) {
     stopTimer();
-    domElements.mainContent.style.display = "none";
-    domElements.passwordPrompt.style.display = "block";
-    document.getElementById("weeklyStats").style.display = "none";
-    document.getElementById("analytics").style.display = "none";
-    document.getElementById("productivityDashboard").style.display = "none";
-    domElements.passwordInput.value = "";
-    domElements.topicInput.value = "";
-    domElements.todoList.classList.add("d-none");
+    currentSession.ended = Date.now();
+    currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
+    sessions.push({ ...currentSession });
 
-    // Clear all session storage
-    sessionStorage.clear();
-    userId = null;
+    try {
+      currentSession = {};
+      await saveUserData();
+    } catch (err) {
+      console.error('Error saving session on logout:', err);
+    }
+  }
+
+  // Reset UI elements
+  domElements.clockInBtn.disabled = false;
+  domElements.clockOutBtn.disabled = true;
+  domElements.currentTopic.textContent = '';
+  domElements.timer.textContent = '00:00:00';
+
+  // Reset state
+  currentSession = {};
+  sessions = [];
+  todos = [];
+  stopTimer();
+  domElements.mainContent.style.display = 'none';
+  domElements.passwordPrompt.style.display = 'block';
+  document.getElementById('weeklyStats').style.display = 'none';
+  document.getElementById('analytics').style.display = 'none';
+  document.getElementById('productivityDashboard').style.display = 'none';
+  domElements.passwordInput.value = '';
+  domElements.topicInput.value = '';
+  domElements.todoList.classList.add('d-none');
+
+  // Clear all session storage
+  sessionStorage.clear();
+  userId = null;
 }
 
 /**
  * Time and Date Utility Functions
  */
 function formatTime(date) {
-    return new Date(date).toLocaleTimeString(); // Format as HH:MM:SS AM/PM
+  return new Date(date).toLocaleTimeString(); // Format as HH:MM:SS AM/PM
 }
 
 function formatDate(date) {
-    return new Date(date).toLocaleDateString(); // Format as MM/DD/YYYY
+  return new Date(date).toLocaleDateString(); // Format as MM/DD/YYYY
 }
 
 function formatDateForDisplay(date) {
-    const options = { day: '2-digit', month: 'short', year: 'numeric', weekday: 'short' };
-    return new Date(date).toLocaleDateString('en-GB', options);
+  const options = { day: '2-digit', month: 'short', year: 'numeric', weekday: 'short' };
+  return new Date(date).toLocaleDateString('en-GB', options);
 }
 
 function calculateTotalTime(started, ended) {
-    const duration = (new Date(ended) - new Date(started)) / 1000; // Difference in seconds
-    const hours = Math.floor(duration / 3600);
-    const minutes = Math.floor((duration % 3600) / 60);
-    const seconds = Math.floor(duration % 60);
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  const duration = (new Date(ended) - new Date(started)) / 1000; // Difference in seconds
+  const hours = Math.floor(duration / 3600);
+  const minutes = Math.floor((duration % 3600) / 60);
+  const seconds = Math.floor(duration % 60);
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
 function updateLocalTime() {
-    const now = new Date();
-    domElements.localTimeElement.textContent = now.toLocaleTimeString();
+  const now = new Date();
+  domElements.localTimeElement.textContent = now.toLocaleTimeString();
 }
 
 function getWeekDateRange() {
-    const now = new Date();
-    const monday = new Date(now);
-    const currentDay = monday.getDay();
-    const diff = currentDay === 0 ? -6 : 1 - currentDay;
-    monday.setDate(monday.getDate() + diff);
-    monday.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const monday = new Date(now);
+  const currentDay = monday.getDay();
+  const diff = currentDay === 0 ? -6 : 1 - currentDay;
+  monday.setDate(monday.getDate() + diff);
+  monday.setHours(0, 0, 0, 0);
 
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
 
-    return { start: monday, end: sunday };
+  return { start: monday, end: sunday };
 }
 
 /**
  * Data Management Functions
  */
 async function loadUserData() {
-    if (!userId) {
-        console.error("No user ID available");
-        return;
+  if (!userId) {
+    console.error('No user ID available');
+    return;
+  }
+
+  const params = {
+    TableName: 'LearningTracker',
+    Key: { userId },
+  };
+
+  try {
+    const data = await docClient.get(params).promise();
+    if (data.Item) {
+      sessions = data.Item.sessions || [];
+      todos = data.Item.todos || [];
+      currentSession = data.Item.currentSession || {};
+      weeklyGoals = data.Item.weeklyGoals || []; // Add this line to load weekly goals
+      weeklyTarget = data.Item.weeklyTarget || 56; // Add this line
+
+      if (currentSession.started) {
+        domElements.clockInBtn.disabled = true;
+        domElements.clockOutBtn.disabled = false;
+        domElements.currentTopic.textContent = currentSession.topic;
+        startTimer(currentSession.started);
+      }
+
+      loadSessions(sessions);
+      domElements.passwordPrompt.style.display = 'none';
+      domElements.mainContent.style.display = 'block';
+      domElements.todoList.classList.remove('d-none');
+      document.getElementById('weeklyStats').style.display = 'block';
+      document.getElementById('analytics').style.display = 'block';
+      document.getElementById('productivityDashboard').style.display = 'block';
+
+      loadTodos(todos);
+      sessionStorage.setItem('loggedIn', 'true');
+      sessionStorage.setItem('userId', userId);
+      addProductivityDashboard(); // Add this line before renderWeeklyGoals
+      renderWeeklyGoals();
+      updateAnalytics();
     }
-
-    const params = {
-        TableName: "LearningTracker",
-        Key: { userId }
-    };
-
-    try {
-        const data = await docClient.get(params).promise();
-        if (data.Item) {
-            sessions = data.Item.sessions || [];
-            todos = data.Item.todos || [];
-            currentSession = data.Item.currentSession || {};
-            weeklyGoals = data.Item.weeklyGoals || []; // Add this line to load weekly goals
-            weeklyTarget = data.Item.weeklyTarget || 56; // Add this line
-
-            if (currentSession.started) {
-                domElements.clockInBtn.disabled = true;
-                domElements.clockOutBtn.disabled = false;
-                domElements.currentTopic.textContent = currentSession.topic;
-                startTimer(currentSession.started);
-            }
-            
-            loadSessions(sessions);
-            domElements.passwordPrompt.style.display = "none";
-            domElements.mainContent.style.display = "block";
-            domElements.todoList.classList.remove("d-none");
-            document.getElementById("weeklyStats").style.display = "block";
-            document.getElementById("analytics").style.display = "block";
-            document.getElementById("productivityDashboard").style.display = "block";
-
-            loadTodos(todos);
-            sessionStorage.setItem("loggedIn", "true");
-            sessionStorage.setItem("userId", userId);
-            addProductivityDashboard(); // Add this line before renderWeeklyGoals
-            renderWeeklyGoals(); 
-            updateAnalytics();
-        }
-    } catch (err) {
-        console.error("Error loading data:", err);
-    }
+  } catch (err) {
+    console.error('Error loading data:', err);
+  }
 }
 
 async function saveUserData() {
-    const params = {
-        TableName: "LearningTracker",
-        Key: { userId },
-        UpdateExpression: "SET sessions = :sessions, todos = :todos, currentSession = :currentSession, weeklyGoals = :weeklyGoals",
-        ExpressionAttributeValues: {
-            ":sessions": sessions,
-            ":todos": todos,
-            ":currentSession": currentSession,
-            ":weeklyGoals": weeklyGoals
-        }
-    };
+  const params = {
+    TableName: 'LearningTracker',
+    Key: { userId },
+    UpdateExpression:
+      'SET sessions = :sessions, todos = :todos, currentSession = :currentSession, weeklyGoals = :weeklyGoals',
+    ExpressionAttributeValues: {
+      ':sessions': sessions,
+      ':todos': todos,
+      ':currentSession': currentSession,
+      ':weeklyGoals': weeklyGoals,
+    },
+  };
 
-    try {
-        await docClient.update(params).promise();
-    } catch (err) {
-        console.error("Error saving data:", err);
-        alert("Error saving data. Check console.");
-    }
+  try {
+    await docClient.update(params).promise();
+  } catch (err) {
+    console.error('Error saving data:', err);
+    alert('Error saving data. Check console.');
+  }
 }
 
 async function exportToCSV() {
-    const confirmExport = confirm("Are you sure you want to export your session data to a CSV file?");
-    if (!confirmExport) {
-        return;
-    }
+  const confirmExport = confirm('Are you sure you want to export your session data to a CSV file?');
+  if (!confirmExport) {
+    return;
+  }
 
-    const csvRows = [];
-    const headers = ["Topic", "Started", "Ended", "Total Time", "Comment"];
-    csvRows.push(headers.join(","));
+  const csvRows = [];
+  const headers = ['Topic', 'Started', 'Ended', 'Total Time', 'Comment'];
+  csvRows.push(headers.join(','));
 
-    sessions.forEach(session => {
-        const values = [
-            session.topic,
-            new Date(session.started).toLocaleString(),
-            new Date(session.ended).toLocaleString(),
-            session.totalTime,
-            session.comment || ""
-        ];
-        csvRows.push(values.join(","));
-    });
+  sessions.forEach((session) => {
+    const values = [
+      session.topic,
+      new Date(session.started).toLocaleString(),
+      new Date(session.ended).toLocaleString(),
+      session.totalTime,
+      session.comment || '',
+    ];
+    csvRows.push(values.join(','));
+  });
 
-    const csvString = csvRows.join("\n");
-    const blob = new Blob([csvString], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.setAttribute("hidden", "");
-    a.setAttribute("href", url);
-    a.setAttribute("download", "sessions.csv");
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  const csvString = csvRows.join('\n');
+  const blob = new Blob([csvString], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.setAttribute('hidden', '');
+  a.setAttribute('href', url);
+  a.setAttribute('download', 'sessions.csv');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 /**
  * Session Management Functions
  */
 function startTimer(startedTime) {
-    interval = setInterval(() => {
-        elapsed = Math.floor((Date.now() - startedTime) / 1000);
-        const hours = Math.floor(elapsed / 3600);
-        const minutes = Math.floor((elapsed % 3600) / 60);
-        const seconds = elapsed % 60;
-        domElements.timer.textContent = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-        if (hours >= 6) {
-            autoClockOut();
-        }
-        
-        if (seconds === 0) {
-            renderWeeklyGoals();
-        }
-    }, 1000);
+  let elapsed = 0; // Define elapsed variable
+  interval = setInterval(() => {
+    elapsed = Math.floor((Date.now() - startedTime) / 1000);
+    const hours = Math.floor(elapsed / 3600);
+    const minutes = Math.floor((elapsed % 3600) / 60);
+    const seconds = elapsed % 60;
+    domElements.timer.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    if (hours >= 6) {
+      autoClockOut();
+    }
+
+    if (seconds === 0) {
+      renderWeeklyGoals();
+    }
+  }, 1000);
 }
 
 async function autoClockOut() {
-    stopTimer();
-    
-    const endTime = new Date(currentSession.started).getTime() + (6 * 60 * 60 * 1000);
-    currentSession.ended = endTime;
-    currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
-    currentSession.autoClockOut = true;
-    currentSession.comment = "Auto clocked out after 6 hours of inactivity";
-    
-    sessions.unshift(currentSession);
-    
-    try {
-        currentSession = {};
-        await saveUserData();
-        domElements.clockInBtn.disabled = false;
-        domElements.clockOutBtn.disabled = true;
-        domElements.currentTopic.textContent = "";
-        domElements.timer.textContent = "00:00:00";
-        
-        loadSessions(sessions);
-        updateAnalytics();
-        alert('Session was automatically clocked out after 6 hours. Please review and edit if needed.');
-    } catch (err) {
-        console.error("Error in auto clock-out:", err);
-    }
+  stopTimer();
+
+  const endTime = new Date(currentSession.started).getTime() + 6 * 60 * 60 * 1000;
+  currentSession.ended = endTime;
+  currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
+  currentSession.autoClockOut = true;
+  currentSession.comment = 'Auto clocked out after 6 hours of inactivity';
+
+  sessions.unshift(currentSession);
+
+  try {
+    currentSession = {};
+    await saveUserData();
+    domElements.clockInBtn.disabled = false;
+    domElements.clockOutBtn.disabled = true;
+    domElements.currentTopic.textContent = '';
+    domElements.timer.textContent = '00:00:00';
+
+    loadSessions(sessions);
+    updateAnalytics();
+    alert('Session was automatically clocked out after 6 hours. Please review and edit if needed.');
+  } catch (err) {
+    console.error('Error in auto clock-out:', err);
+  }
 }
 
 function stopTimer() {
-    clearInterval(interval);
-    interval = null;
+  clearInterval(interval);
+  interval = null;
 }
 
 async function handleClockIn() {
-    const topic = domElements.topicInput.value.trim();
-    const specialCharPattern = /[^a-zA-Z0-9 &@,._:-]/g;
+  const topic = domElements.topicInput.value.trim();
+  const specialCharPattern = /[^a-zA-Z0-9 &@,._:-]/g;
 
-    if (!topic) {
-        return alert("Please enter a topic!");
-    }
+  if (!topic) {
+    return alert('Please enter a topic!');
+  }
 
-    if (specialCharPattern.test(topic)) {
-        return alert("Topic contains special characters. Please use only letters and numbers.");
-    }
+  if (specialCharPattern.test(topic)) {
+    return alert('Topic contains special characters. Please use only letters and numbers.');
+  }
 
-    if (topic.length > 50) {
-        return alert("Topic is too long. Please use a topic with less than 50 characters.");
-    }
+  if (topic.length > 50) {
+    return alert('Topic is too long. Please use a topic with less than 50 characters.');
+  }
 
-    currentSession = {
-        topic,
-        started: Date.now(),
-        date: new Date().toLocaleDateString()
-    };
+  currentSession = {
+    topic,
+    started: Date.now(),
+    date: new Date().toLocaleDateString(),
+  };
 
-    await saveUserData();
+  await saveUserData();
 
-    domElements.clockInBtn.disabled = true;
-    domElements.clockOutBtn.disabled = false;
-    domElements.currentTopic.textContent = topic + ": ";
-    domElements.topicInput.value = ""; // Clear the topic input
-    startTimer(currentSession.started);
-    renderWeeklyGoals(); // Add this line at the end
+  domElements.clockInBtn.disabled = true;
+  domElements.clockOutBtn.disabled = false;
+  domElements.currentTopic.textContent = topic + ': ';
+  domElements.topicInput.value = ''; // Clear the topic input
+  startTimer(currentSession.started);
+  renderWeeklyGoals(); // Add this line at the end
 }
 
 async function handleClockOut() {
-    if (!currentSession.started) return;
+  if (!currentSession.started) return;
 
-    currentSession.ended = Date.now();
-    currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
-    currentSession.comment = ""; // Add empty comment field
+  currentSession.ended = Date.now();
+  currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
+  currentSession.comment = ''; // Add empty comment field
 
-    domElements.clockInBtn.disabled = false;
-    domElements.clockOutBtn.disabled = true;
-    stopTimer();
+  domElements.clockInBtn.disabled = false;
+  domElements.clockOutBtn.disabled = true;
+  stopTimer();
 
-    sessions.unshift(currentSession);
-    try {
-        currentSession = {}; // Reset current session
-        await saveUserData();
-        loadSessions(sessions);
-        updateCategoryChart(); 
-        updateDailyStudyChart();
-        addProductivityDashboard(); // Add this line
-        renderWeeklyGoals();
-        updateAnalytics();
-        domElements.currentTopic.textContent = "";
-        domElements.timer.textContent = "00:00:00";
-    } catch (err) {
-        console.error("Error saving session:", err);
-        alert("Error saving session. Check console.");
-    }
+  sessions.unshift(currentSession);
+  try {
+    currentSession = {}; // Reset current session
+    await saveUserData();
+    loadSessions(sessions);
+    updateCategoryChart();
+    updateDailyStudyChart();
+    addProductivityDashboard(); // Add this line
+    renderWeeklyGoals();
+    updateAnalytics();
+    domElements.currentTopic.textContent = '';
+    domElements.timer.textContent = '00:00:00';
+  } catch (err) {
+    console.error('Error saving session:', err);
+    alert('Error saving session. Check console.');
+  }
 }
 
 function loadSessions(sessions) {
-    const sessionsContainer = document.getElementById("sessionsContainer");
-    sessionsContainer.innerHTML = "";
-    
-    // Get today's date for comparison
-    const today = new Date().toLocaleDateString();
+  const sessionsContainer = document.getElementById('sessionsContainer');
+  sessionsContainer.innerHTML = '';
 
-    // Group sessions by month and date
-    const sessionsByMonth = sessions.reduce((acc, session) => {
-        const date = new Date(session.date);
-        const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-        const dateKey = formatDateForDisplay(session.date);
-        
-        if (!acc[monthKey]) {
-            acc[monthKey] = {
-                monthName: date.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
-                dates: {}
-            };
-        }
-        if (!acc[monthKey].dates[dateKey]) {
-            acc[monthKey].dates[dateKey] = [];
-        }
-        acc[monthKey].dates[dateKey].push(session);
-        return acc;
-    }, {});
+  // Get today's date for comparison
+  const today = new Date().toLocaleDateString();
 
-    // Sort months from newest to oldest
-    const sortedMonths = Object.keys(sessionsByMonth).sort((a, b) => b.localeCompare(a));
+  // Group sessions by month and date
+  const sessionsByMonth = sessions.reduce((acc, session) => {
+    const date = new Date(session.date);
+    const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+    const dateKey = formatDateForDisplay(session.date);
 
-    sortedMonths.forEach(monthKey => {
-        const monthData = sessionsByMonth[monthKey];
-        const monthSection = document.createElement("div");
-        const isCurrentMonth = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }) === monthData.monthName;
+    if (!acc[monthKey]) {
+      acc[monthKey] = {
+        monthName: date.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+        dates: {},
+      };
+    }
+    if (!acc[monthKey].dates[dateKey]) {
+      acc[monthKey].dates[dateKey] = [];
+    }
+    acc[monthKey].dates[dateKey].push(session);
+    return acc;
+  }, {});
 
-        // Create month-level collapsible
-        monthSection.innerHTML = `
+  // Sort months from newest to oldest
+  const sortedMonths = Object.keys(sessionsByMonth).sort((a, b) => b.localeCompare(a));
+
+  sortedMonths.forEach((monthKey) => {
+    const monthData = sessionsByMonth[monthKey];
+    const monthSection = document.createElement('div');
+    const isCurrentMonth =
+      new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }) ===
+      monthData.monthName;
+
+    // Create month-level collapsible
+    monthSection.innerHTML = `
             <button class="collapsible month-collapsible ${isCurrentMonth ? 'active' : ''}">
                 ${monthData.monthName}
                 <span class="icon">></span>
             </button>
             <div class="collapsible-content" style="${isCurrentMonth ? 'display:block;' : 'display:none;'}">
-                ${Object.entries(monthData.dates).sort((a, b) => new Date(b[0]) - new Date(a[0])).map(([date, dateSessions]) => {
+                ${Object.entries(monthData.dates)
+                  .sort((a, b) => new Date(b[0]) - new Date(a[0]))
+                  .map(([date, dateSessions]) => {
                     const isToday = new Date(date).toLocaleDateString() === today;
                     return `
                         <button class="collapsible date-collapsible ${isToday ? 'active' : ''}">
@@ -446,7 +452,9 @@ function loadSessions(sessions) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${dateSessions.map((session, index) => `
+                                    ${dateSessions
+                                      .map(
+                                        (session) => `
                                         <tr data-session-index="${sessions.indexOf(session)}" 
                                             class="${session.autoClockOut ? 'auto-clockout-row' : ''}">
                                             <td class="topic-cell tooltip-cell" data-tooltip="${session.topic}">
@@ -478,580 +486,597 @@ function loadSessions(sessions) {
                                                     </button>
                                                 </div>
                                             </td>
-                                            ${session.autoClockOut ? `<div class="alert alert-warning mt-1 mb-1" role="alert">
+                                            ${
+                                              session.autoClockOut
+                                                ? `<div class="alert alert-warning mt-1 mb-1" role="alert">
                                                 <i class="bi bi-exclamation-triangle"></i> Auto clocked out after 6 hours
-                                            </div>` : ''}
+                                            </div>`
+                                                : ''
+                                            }
                                         </tr>
-                                    `).join('')}
+                                    `
+                                      )
+                                      .join('')}
                                 </tbody>
                             </table>
                         </div>
                     `;
-                }).join('')}
+                  })
+                  .join('')}
             </div>
         `;
-        sessionsContainer.appendChild(monthSection);
+    sessionsContainer.appendChild(monthSection);
+  });
+
+  // Add collapsible functionality for both month and date levels
+  document.querySelectorAll('.month-collapsible, .date-collapsible').forEach((button) => {
+    button.addEventListener('click', function (e) {
+      e.stopPropagation();
+      this.classList.toggle('active');
+      const content = this.nextElementSibling;
+      content.style.display = content.style.display === 'block' ? 'none' : 'block';
+    });
+  });
+
+  // Add Edit functionality
+  document.querySelectorAll('.edit-btn').forEach((btn) => {
+    btn.addEventListener('click', handleEdit);
+  });
+
+  // Add these new functions after the loadSessions function
+  function handleEdit(e) {
+    e.stopPropagation();
+    const button = e.target.closest('.edit-btn');
+    if (!button) return;
+
+    const row = button.closest('tr');
+    if (!row) return;
+
+    const inputs = row.querySelectorAll('.edit-input');
+    inputs.forEach((input) => {
+      input.disabled = false;
+      input.addEventListener('keypress', handleEnterKey);
     });
 
-    // Add collapsible functionality for both month and date levels
-    document.querySelectorAll(".month-collapsible, .date-collapsible").forEach(button => {
-        button.addEventListener("click", function(e) {
-            e.stopPropagation();
-            this.classList.toggle("active");
-            const content = this.nextElementSibling;
-            content.style.display = content.style.display === "block" ? "none" : "block";
-        });
-    });
+    const editBtn = row.querySelector('.edit-btn');
+    const saveBtn = row.querySelector('.save-btn');
+    const cancelBtn = row.querySelector('.cancel-btn');
 
-    // Add Edit functionality
-    document.querySelectorAll(".edit-btn").forEach(btn => {
-        btn.addEventListener("click", handleEdit);
-    });
+    if (editBtn) editBtn.style.display = 'none';
+    if (saveBtn) saveBtn.style.display = 'inline-block';
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    row.querySelector('.actions').classList.add('editing');
+  }
 
-    // Add these new functions after the loadSessions function
-    function handleEdit(e) {
-        e.stopPropagation();
-        const button = e.target.closest('.edit-btn');
-        if (!button) return;
-        
-        const index = button.dataset.sessionIndex;
-        const row = button.closest('tr');
-        if (!row) return;
+  function handleEnterKey(e) {
+    if (e.key === 'Enter') {
+      const row = e.target.closest('tr');
+      if (row) {
+        const saveBtn = row.querySelector('.save-btn');
+        if (saveBtn) saveBtn.click();
+      }
+    }
+  }
 
-        const inputs = row.querySelectorAll(".edit-input");
-        inputs.forEach(input => {
-            input.disabled = false;
-            input.addEventListener("keypress", handleEnterKey);
-        });
-        
-        const editBtn = row.querySelector(".edit-btn");
-        const saveBtn = row.querySelector(".save-btn");
-        const cancelBtn = row.querySelector(".cancel-btn");
-        
-        if (editBtn) editBtn.style.display = "none";
-        if (saveBtn) saveBtn.style.display = "inline-block";
-        if (cancelBtn) cancelBtn.style.display = "inline-block";
-        row.querySelector(".actions").classList.add("editing");
+  // Update Save functionality
+  document.querySelectorAll('.save-btn').forEach((btn) => {
+    btn.addEventListener('click', handleSave);
+  });
+
+  async function handleSave(e) {
+    e.stopPropagation();
+    const button = e.target.closest('.save-btn');
+    if (!button) return;
+
+    const row = button.closest('tr');
+    if (!row) return;
+
+    const sessionIndex = button.dataset.sessionIndex;
+    if (!sessionIndex) return;
+
+    // Get updated values
+    const updatedTopic = row.cells[0].querySelector('.edit-input').value.trim();
+    const updatedStarted = row.cells[1].querySelector('.edit-input').value.trim();
+    const updatedEnded = row.cells[2].querySelector('.edit-input').value.trim();
+    const updatedComment = row.cells[4].querySelector('.comment-input').value.trim();
+
+    if (!updatedTopic || !updatedStarted || !updatedEnded) {
+      alert('All fields (Topic, Started, Ended) must be filled!');
+      return;
     }
 
-    function handleEnterKey(e) {
-        if (e.key === "Enter") {
-            const row = e.target.closest('tr');
-            if (row) {
-                const saveBtn = row.querySelector(".save-btn");
-                if (saveBtn) saveBtn.click();
-            }
+    try {
+      // Parse updated time and recalculate total time
+      const startedTime = new Date(
+        `${formatDate(sessions[sessionIndex].date)} ${updatedStarted}`
+      ).getTime();
+      let endedTime = new Date(
+        `${formatDate(sessions[sessionIndex].date)} ${updatedEnded}`
+      ).getTime();
+      if (endedTime <= startedTime) {
+        const confirmNextDay = confirm(
+          'The entered end time is before the start time. Do you want to consider it as the next day?'
+        );
+        if (!confirmNextDay) {
+          return;
         }
+        endedTime += 24 * 60 * 60 * 1000;
+      }
+      const newTotalTime = calculateTotalTime(startedTime, endedTime);
+
+      // Update session
+      sessions[sessionIndex] = {
+        ...sessions[sessionIndex],
+        topic: updatedTopic,
+        started: startedTime,
+        ended: endedTime,
+        totalTime: newTotalTime,
+        comment: updatedComment,
+      };
+
+      delete sessions[sessionIndex].autoClockOut;
+
+      await saveUserData();
+      const openSections = getOpenSections();
+      loadSessions(sessions);
+      setOpenSections(openSections);
+      renderWeeklyGoals();
+    } catch (err) {
+      console.error('Error updating session:', err);
+      alert('Error updating session. Check console.');
     }
+  }
 
-    // Update Save functionality
-    document.querySelectorAll(".save-btn").forEach(btn => {
-        btn.addEventListener("click", handleSave);
-    });
+  // Update Cancel functionality
+  document.querySelectorAll('.cancel-btn').forEach((btn) => {
+    btn.addEventListener('click', handleCancel);
+  });
 
-    async function handleSave(e) {
-        e.stopPropagation();
-        const button = e.target.closest('.save-btn');
-        if (!button) return;
+  function handleCancel(e) {
+    e.stopPropagation();
+    const openSections = getOpenSections();
+    loadSessions(sessions);
+    setOpenSections(openSections);
+    renderWeeklyGoals();
+  }
 
-        const index = button.dataset.sessionIndex;
-        const row = button.closest('tr');
-        if (!row) return;
+  // Replace the delete button event listener section in loadSessions function
+  document.querySelectorAll('.delete-btn').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const button = e.target.closest('.delete-btn');
+      if (!button) return;
 
-        // Get updated values
-        const updatedTopic = row.cells[0].querySelector(".edit-input").value.trim();
-        const updatedStarted = row.cells[1].querySelector(".edit-input").value.trim();
-        const updatedEnded = row.cells[2].querySelector(".edit-input").value.trim();
-        const updatedComment = row.cells[4].querySelector(".comment-input").value.trim();
+      const index = button.dataset.sessionIndex;
+      if (typeof index === 'undefined') return;
 
-        if (!updatedTopic || !updatedStarted || !updatedEnded) {
-            alert("All fields (Topic, Started, Ended) must be filled!");
-            return;
-        }
+      const session = sessions[index];
+      if (!session) return;
 
-        try {
-            // Parse updated time and recalculate total time
-            const startedTime = new Date(`${formatDate(sessions[index].date)} ${updatedStarted}`).getTime();
-            let endedTime = new Date(`${formatDate(sessions[index].date)} ${updatedEnded}`).getTime();          
-            if (endedTime <= startedTime) {
-                const confirmNextDay = confirm("The entered end time is before the start time. Do you want to consider it as the next day?");
-                if (!confirmNextDay) {
-                    return;
-                }
-                endedTime += 24 * 60 * 60 * 1000;
-            }
-            const newTotalTime = calculateTotalTime(startedTime, endedTime);
+      const confirmDelete = confirm(`Are you sure you want to delete "${session.topic}"?`);
+      if (!confirmDelete) return;
 
-            // Update session
-            sessions[index] = {
-                ...sessions[index],
-                topic: updatedTopic,
-                started: startedTime,
-                ended: endedTime,
-                totalTime: newTotalTime,
-                comment: updatedComment
-            };
+      // Remove the session from the array
+      sessions.splice(index, 1);
 
-            delete sessions[index].autoClockOut;
+      try {
+        // Save to DynamoDB
+        await saveUserData();
 
-            await saveUserData();
-            const openSections = getOpenSections();
-            loadSessions(sessions);
-            setOpenSections(openSections);
-            renderWeeklyGoals();
-        } catch (err) {
-            console.error("Error updating session:", err);
-            alert("Error updating session. Check console.");
-        }
-    }
-
-    // Update Cancel functionality
-    document.querySelectorAll(".cancel-btn").forEach(btn => {
-        btn.addEventListener("click", handleCancel);
-    });
-
-    function handleCancel(e) {
-        e.stopPropagation();
+        // Remember which sections were open
         const openSections = getOpenSections();
+
+        // Reload the sessions display
         loadSessions(sessions);
+
+        // Restore open sections
         setOpenSections(openSections);
+
+        // Update goals and analytics
         renderWeeklyGoals();
-    }
-
-    // Replace the delete button event listener section in loadSessions function
-    document.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.addEventListener("click", async (e) => {
-            e.stopPropagation();
-            const button = e.target.closest('.delete-btn');
-            if (!button) return;
-            
-            const index = button.dataset.sessionIndex;
-            if (typeof index === 'undefined') return;
-            
-            const session = sessions[index];
-            if (!session) return;
-
-            const confirmDelete = confirm(`Are you sure you want to delete "${session.topic}"?`);
-            if (!confirmDelete) return;
-
-            // Remove the session from the array
-            sessions.splice(index, 1);
-
-            try {
-                // Save to DynamoDB
-                await saveUserData();
-
-                // Remember which sections were open
-                const openSections = getOpenSections();
-                
-                // Reload the sessions display
-                loadSessions(sessions);
-                
-                // Restore open sections
-                setOpenSections(openSections);
-                
-                // Update goals and analytics
-                renderWeeklyGoals();
-                updateAnalytics();
-            } catch (err) {
-                console.error("Error deleting session:", err);
-                alert("Failed to delete session. Please try again.");
-                // Restore the deleted session if save fails
-                sessions.splice(index, 0, session);
-            }
-        });
+        updateAnalytics();
+      } catch (err) {
+        console.error('Error deleting session:', err);
+        alert('Failed to delete session. Please try again.');
+        // Restore the deleted session if save fails
+        sessions.splice(index, 0, session);
+      }
     });
+  });
 
-    updateCategoryChart();
-    updateDailyStudyChart();
+  updateCategoryChart();
+  updateDailyStudyChart();
 }
 
 function getOpenSections() {
-    const openSections = [];
-    document.querySelectorAll(".collapsible").forEach((button, index) => {
-        if (button.classList.contains("active")) {
-            openSections.push(index);
-        }
-    });
-    return openSections;
+  const openSections = [];
+  document.querySelectorAll('.collapsible').forEach((button, index) => {
+    if (button.classList.contains('active')) {
+      openSections.push(index);
+    }
+  });
+  return openSections;
 }
 
 function setOpenSections(openSections) {
-    document.querySelectorAll(".collapsible").forEach((button, index) => {
-        if (openSections.includes(index)) {
-            button.classList.add("active");
-            button.nextElementSibling.style.display = "block";
-        }
-    });
+  document.querySelectorAll('.collapsible').forEach((button, index) => {
+    if (openSections.includes(index)) {
+      button.classList.add('active');
+      button.nextElementSibling.style.display = 'block';
+    }
+  });
 }
 
 /**
  * Todo List Management Functions
  */
 function loadTodos(todoList) {
-    domElements.todoItems.innerHTML = "";
-    todos = todoList;
-    
-    // Sort todos by status: intermediate -> unchecked -> checked
-    todos.sort((a, b) => {
-        const statusOrder = { 'intermediate': 0, 'unchecked': 1, 'checked': 2 };
-        return statusOrder[a.status || 'unchecked'] - statusOrder[b.status || 'unchecked'];
-    });
+  domElements.todoItems.innerHTML = '';
+  todos = todoList;
 
-    todos.forEach((todo, index) => {
-        const li = document.createElement("li");
-        li.setAttribute('data-full-text', todo.text);
-        li.setAttribute('data-id', index);
-        const status = todo.status || 'unchecked';
-        li.className = `list-group-item d-flex justify-content-between align-items-center ${status}`;
-        li.innerHTML = `
+  // Sort todos by status: intermediate -> unchecked -> checked
+  todos.sort((a, b) => {
+    const statusOrder = { intermediate: 0, unchecked: 1, checked: 2 };
+    return statusOrder[a.status || 'unchecked'] - statusOrder[b.status || 'unchecked'];
+  });
+
+  todos.forEach((todo, todoIndex) => {
+    const li = document.createElement('li');
+    li.setAttribute('data-full-text', todo.text);
+    li.setAttribute('data-id', todoIndex);
+    const status = todo.status || 'unchecked';
+    li.className = `list-group-item d-flex justify-content-between align-items-center ${status}`;
+    li.innerHTML = `
             <div class="form-check">
                 <input type="checkbox" class="form-check-input" 
-                    ${status === 'checked' ? "checked" : ""} 
-                    ${status === 'intermediate' ? "indeterminate='true'" : ""}
-                    onclick="toggleTodoCheck(${index})">
+                    ${status === 'checked' ? 'checked' : ''} 
+                    ${status === 'intermediate' ? "indeterminate='true'" : ''}
+                    onclick="toggleTodoCheck(${todoIndex})">
                 <input type="text" class="form-control-plaintext" value="${todo.text}" disabled>
             </div>
-            <button class="btn btn-danger btn-sm" onclick="deleteTodo(${index})">x</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteTodo(${todoIndex})">x</button>
         `;
-        domElements.todoItems.appendChild(li);
-        
-        if (status === 'intermediate') {
-            li.querySelector('input[type="checkbox"]').indeterminate = true;
-        }
-    });
+    domElements.todoItems.appendChild(li);
 
-    // Initialize Sortable with modified options
-    if (!domElements.todoItems.sortable) {
-        domElements.todoItems.sortable = new Sortable(domElements.todoItems, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            dragClass: 'sortable-drag',
-            filter: '.form-check-input, .btn', // Prevent dragging from checkbox and delete button
-            onEnd: async function(evt) {
-                const newIndex = evt.newIndex;
-                const oldIndex = evt.oldIndex;
-                
-                // Reorder the todos array
-                const item = todos.splice(oldIndex, 1)[0];
-                todos.splice(newIndex, 0, item);
-                
-                // Save the new order
-                await saveUserData();
-                
-                // Refresh the display without full reload
-                loadTodos(todos);
-            }
-        });
+    if (status === 'intermediate') {
+      li.querySelector('input[type="checkbox"]').indeterminate = true;
     }
+  });
+
+  // Initialize Sortable with modified options
+  if (!domElements.todoItems.sortable) {
+    domElements.todoItems.sortable = new Sortable(domElements.todoItems, {
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      dragClass: 'sortable-drag',
+      filter: '.form-check-input, .btn', // Prevent dragging from checkbox and delete button
+      onEnd: async function (evt) {
+        const newIndex = evt.newIndex;
+        const oldIndex = evt.oldIndex;
+
+        // Reorder the todos array
+        const item = todos.splice(oldIndex, 1)[0];
+        todos.splice(newIndex, 0, item);
+
+        // Save the new order
+        await saveUserData();
+
+        // Refresh the display without full reload
+        loadTodos(todos);
+      },
+    });
+  }
 }
 
 async function addTodo() {
-    const todo = domElements.newTodoInput.value.trim();
-    if (todo) {
-        todos.unshift({ text: todo, status: 'unchecked' });
-        await saveUserData();
-        loadTodos(todos);
-        domElements.newTodoInput.value = "";
-    }
-}
-
-async function deleteTodo(index) {
-    todos.splice(index, 1);
+  const todo = domElements.newTodoInput.value.trim();
+  if (todo) {
+    todos.unshift({ text: todo, status: 'unchecked' });
     await saveUserData();
     loadTodos(todos);
+    domElements.newTodoInput.value = '';
+  }
 }
 
-async function toggleTodoCheck(index) {
-    // Cycle through states: unchecked -> intermediate -> checked
-    const currentStatus = todos[index].status || 'unchecked';
-    const todo = todos[index];
+window.deleteTodo = async function (index) {
+  todos.splice(index, 1);
+  await saveUserData();
+  loadTodos(todos);
+};
 
-    switch (currentStatus) {
-        case 'unchecked':
-            todo.status = 'intermediate';
-            // Move to top of the list
-            todos.splice(index, 1);
-            todos.unshift(todo);
-            break;
-        case 'intermediate':
-            todo.status = 'checked';
-            // Move to bottom with checked items
-            todos.splice(index, 1);
-            const firstCheckedIndex = todos.findIndex(t => t.status === 'checked');
-            if (firstCheckedIndex === -1) {
-                todos.push(todo);
-            } else {
-                todos.splice(firstCheckedIndex, 0, todo);
-            }
-            break;
-        case 'checked':
-            todo.status = 'unchecked';
-            // Move after intermediate items but before checked items
-            todos.splice(index, 1);
-            const firstChecked = todos.findIndex(t => t.status === 'checked');
-            const afterIntermediate = todos.findIndex(t => t.status !== 'intermediate');
-            const insertIndex = afterIntermediate === -1 ? todos.length : afterIntermediate;
-            todos.splice(insertIndex, 0, todo);
-            break;
+window.toggleTodoCheck = function (index) {
+  const currentStatus = todos[index].status || 'unchecked';
+  const todo = todos[index];
+
+  switch (currentStatus) {
+    case 'unchecked': {
+      todo.status = 'intermediate';
+      todos.splice(index, 1);
+      todos.unshift(todo);
+      break;
     }
-    
-    await saveUserData();
-    loadTodos(todos);
-}
+    case 'intermediate': {
+      todo.status = 'checked';
+      todos.splice(index, 1);
+      const firstCheckedIndex = todos.findIndex((t) => t.status === 'checked');
+      if (firstCheckedIndex === -1) {
+        todos.push(todo);
+      } else {
+        todos.splice(firstCheckedIndex, 0, todo);
+      }
+      break;
+    }
+    case 'checked': {
+      todo.status = 'unchecked';
+      todos.splice(index, 1);
+      const afterIntermediate = todos.findIndex((t) => t.status !== 'intermediate');
+      const insertIndex = afterIntermediate === -1 ? todos.length : afterIntermediate;
+      todos.splice(insertIndex, 0, todo);
+      break;
+    }
+  }
+
+  saveUserData();
+  loadTodos(todos);
+};
 
 /**
  * Weekly Goals Management Functions
  */
 async function loadWeeklyGoals() {
-    if (!userId) return;
+  if (!userId) return;
 
-    try {
-        const data = await docClient.get({
-            TableName: "LearningTracker",
-            Key: { userId }
-        }).promise();
+  try {
+    const data = await docClient
+      .get({
+        TableName: 'LearningTracker',
+        Key: { userId },
+      })
+      .promise();
 
-        if (data.Item && data.Item.weeklyGoals) {
-            weeklyGoals = data.Item.weeklyGoals;
-            renderWeeklyGoals();
-        }
-    } catch (err) {
-        console.error("Error loading weekly goals:", err);
+    if (data.Item && data.Item.weeklyGoals) {
+      weeklyGoals = data.Item.weeklyGoals;
+      renderWeeklyGoals();
     }
+  } catch (err) {
+    console.error('Error loading weekly goals:', err);
+  }
 }
 
 function isGoalCompleted(goal) {
-    const progress = calculateGoalProgress(goal.category, goal.weekStart);
-    return progress >= goal.hours;
+  const progress = calculateGoalProgress(goal.category, goal.weekStart);
+  return progress >= goal.hours;
 }
 
 function renderWeeklyGoals() {
-    const goalsContainer = document.getElementById('goalsContainer');
-    if (!goalsContainer) return;
+  const goalsContainer = document.getElementById('goalsContainer');
+  if (!goalsContainer) return;
 
-    const { start, end } = getWeekDateRange();
-    const dateRange = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-    
-    // Get current week's goals (excluding completed ones)
-    const currentWeekGoals = weeklyGoals.filter(goal => 
-        (!goal.weekStart || isCurrentWeek(new Date(goal.weekStart))) && 
-        !isGoalCompleted(goal)
-    );
+  const { start, end } = getWeekDateRange();
+  const dateRange = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
 
-    // Get backlog goals (excluding completed ones)
-    const backlogGoals = getBacklogGoals().filter(goal => !isGoalCompleted(goal));
+  // Get current week's goals (excluding completed ones)
+  const currentWeekGoals = weeklyGoals.filter(
+    (goal) => (!goal.weekStart || isCurrentWeek(new Date(goal.weekStart))) && !isGoalCompleted(goal)
+  );
 
-    // Get completed goals
-    const completedGoals = weeklyGoals.filter(goal => isGoalCompleted(goal));
+  // Get backlog goals (excluding completed ones)
+  const backlogGoals = getBacklogGoals().filter((goal) => !isGoalCompleted(goal));
 
-    goalsContainer.innerHTML = `
+  // Get completed goals
+  const completedGoals = weeklyGoals.filter((goal) => isGoalCompleted(goal));
+
+  goalsContainer.innerHTML = `
         <div class="text-muted small mb-2">Week: ${dateRange}</div>
         <div id="currentWeekGoals"></div>
         ${backlogGoals.length ? '<div id="backlogGoals" class="mt-3"><h5 class="text-danger">Backlog</h5></div>' : ''}
         ${completedGoals.length ? '<div id="completedGoals" class="mt-3"><h5 class="text-success">Completed Goals</h5></div>' : ''}
     `;
 
-    // Render current week's goals
-    const currentWeekContainer = document.getElementById('currentWeekGoals');
-    renderGoalsList(currentWeekGoals, currentWeekContainer);
+  // Render current week's goals
+  const currentWeekContainer = document.getElementById('currentWeekGoals');
+  renderGoalsList(currentWeekGoals, currentWeekContainer);
 
-    // Render backlog if exists
-    if (backlogGoals.length) {
-        const backlogContainer = document.getElementById('backlogGoals');
-        renderGoalsList(backlogGoals, backlogContainer);
-    }
+  // Render backlog if exists
+  if (backlogGoals.length) {
+    const backlogContainer = document.getElementById('backlogGoals');
+    renderGoalsList(backlogGoals, backlogContainer);
+  }
 
-    // Render completed goals if exists
-    if (completedGoals.length) {
-        const completedContainer = document.getElementById('completedGoals');
-        renderGoalsList(completedGoals, completedContainer);
-    }
+  // Render completed goals if exists
+  if (completedGoals.length) {
+    const completedContainer = document.getElementById('completedGoals');
+    renderGoalsList(completedGoals, completedContainer);
+  }
 }
 
 async function addWeeklyGoal() {
-    const categoryInput = document.getElementById('goalCategory');
-    const hoursInput = document.getElementById('goalHours');
-    
-    const category = categoryInput.value.trim();
-    const hours = parseFloat(hoursInput.value);
+  const categoryInput = document.getElementById('goalCategory');
+  const hoursInput = document.getElementById('goalHours');
 
-    if (!category) {
-        alert('Please enter a category name');
-        categoryInput.focus();
-        return;
-    }
+  const category = categoryInput.value.trim();
+  const hours = parseFloat(hoursInput.value);
 
-    if (isNaN(hours) || hours <= 0) {
-        alert('Please enter a valid number of hours (greater than 0)');
-        hoursInput.focus();
-        return;
-    }
+  if (!category) {
+    alert('Please enter a category name');
+    categoryInput.focus();
+    return;
+  }
 
-    // Get the Monday of current week
-    const now = new Date();
-    const monday = new Date(now);
-    const currentDay = monday.getDay();
-    const diff = currentDay === 0 ? -6 : 1 - currentDay; // Adjust for Sunday
-    monday.setDate(monday.getDate() + diff);
-    monday.setHours(0, 0, 0, 0);
+  if (isNaN(hours) || hours <= 0) {
+    alert('Please enter a valid number of hours (greater than 0)');
+    hoursInput.focus();
+    return;
+  }
 
-    const newGoal = {
-        category,
-        hours,
-        weekStart: monday.toISOString(),
-        weekNumber: getWeekNumber(monday)
-    };
+  // Get the Monday of current week
+  const now = new Date();
+  const monday = new Date(now);
+  const currentDay = monday.getDay();
+  const diff = currentDay === 0 ? -6 : 1 - currentDay; // Adjust for Sunday
+  monday.setDate(monday.getDate() + diff);
+  monday.setHours(0, 0, 0, 0);
 
-    // Check if goal for this category already exists in the current week
-    const existingGoal = weeklyGoals.find(g => {
-        const goalWeekStart = new Date(g.weekStart);
-        return g.category.toUpperCase() === category.toUpperCase() && 
-               goalWeekStart.getTime() === monday.getTime();
-    });
+  const newGoal = {
+    category,
+    hours,
+    weekStart: monday.toISOString(),
+    weekNumber: getWeekNumber(monday),
+  };
 
-    if (existingGoal) {
-        const update = confirm(`A goal for ${existingGoal.category} already exists for this week. Do you want to update it?`);
-        if (update) {
-            existingGoal.hours = hours;
-        } else {
-            return;
-        }
+  // Check if goal for this category already exists in the current week
+  const existingGoal = weeklyGoals.find((g) => {
+    const goalWeekStart = new Date(g.weekStart);
+    return (
+      g.category.toUpperCase() === category.toUpperCase() &&
+      goalWeekStart.getTime() === monday.getTime()
+    );
+  });
+
+  if (existingGoal) {
+    const update = confirm(
+      `A goal for ${existingGoal.category} already exists for this week. Do you want to update it?`
+    );
+    if (update) {
+      existingGoal.hours = hours;
     } else {
-        weeklyGoals.push(newGoal);
+      return;
     }
-    
-    try {
-        await saveUserData(); // Use the existing saveUserData function that includes weeklyGoals
-        categoryInput.value = '';
-        hoursInput.value = '';
-        renderWeeklyGoals();
-        updateAnalytics(); // Update charts and goals display
-    } catch (err) {
-        console.error("Error saving weekly goal:", err);
-        if (!existingGoal) {
-            weeklyGoals.pop(); // Remove the goal if save failed
-        }
-        alert('Failed to save goal. Please try again.');
+  } else {
+    weeklyGoals.push(newGoal);
+  }
+
+  try {
+    await saveUserData(); // Use the existing saveUserData function that includes weeklyGoals
+    categoryInput.value = '';
+    hoursInput.value = '';
+    renderWeeklyGoals();
+    updateAnalytics(); // Update charts and goals display
+  } catch (err) {
+    console.error('Error saving weekly goal:', err);
+    if (!existingGoal) {
+      weeklyGoals.pop(); // Remove the goal if save failed
     }
+    alert('Failed to save goal. Please try again.');
+  }
 }
 
-async function deleteGoal(index) {
-    weeklyGoals.splice(index, 1);
-    
-    try {
-        await saveUserData();
-        
-        renderWeeklyGoals();
-    } catch (err) {
-        console.error("Error deleting weekly goal:", err);
-    }
-}
+window.deleteGoal = async function (index) {
+  weeklyGoals.splice(index, 1);
+
+  try {
+    await saveUserData();
+
+    renderWeeklyGoals();
+  } catch (err) {
+    console.error('Error deleting weekly goal:', err);
+  }
+};
 
 function calculateGoalProgress(category, weekStart = null) {
-    let start, end;
-    const now = new Date();
-    
-    if (weekStart) {
-        // For specific week's goal
-        start = new Date(weekStart);
-        // For backlog goals, count all sessions up to now
-        if (start < getWeekDateRange().start) {
-            end = now;
-        } else {
-            // For current/future week goals, only count that week
-            end = new Date(start);
-            end.setDate(start.getDate() + 6);
-            end.setHours(23, 59, 59, 999);
-        }
+  let start, end;
+  const now = new Date();
+
+  if (weekStart) {
+    // For specific week's goal
+    start = new Date(weekStart);
+    // For backlog goals, count all sessions up to now
+    if (start < getWeekDateRange().start) {
+      end = now;
     } else {
-        // For current week
-        const weekRange = getWeekDateRange();
-        start = weekRange.start;
-        end = weekRange.end;
+      // For current/future week goals, only count that week
+      end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
     }
+  } else {
+    // For current week
+    const weekRange = getWeekDateRange();
+    start = weekRange.start;
+    end = weekRange.end;
+  }
 
-    let totalHours = 0;
-    const categoryUpper = category.toUpperCase();
+  let totalHours = 0;
+  const categoryUpper = category.toUpperCase();
 
-    sessions.forEach(session => {
-        const sessionDate = new Date(session.started);
-        if (sessionDate >= start && sessionDate <= end) {
-            if (session.topic.toUpperCase().includes(categoryUpper)) {
-                totalHours += (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60);
-            }
-        }
-    });
-
-    if (currentSession.started && currentSession.topic.toUpperCase().includes(categoryUpper)) {
-        const activeSessionHours = (Date.now() - new Date(currentSession.started).getTime()) / (1000 * 60 * 60);
-        totalHours += activeSessionHours;
+  sessions.forEach((session) => {
+    const sessionDate = new Date(session.started);
+    if (sessionDate >= start && sessionDate <= end) {
+      if (session.topic.toUpperCase().includes(categoryUpper)) {
+        totalHours += (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60);
+      }
     }
+  });
 
-    return totalHours;
+  if (currentSession.started && currentSession.topic.toUpperCase().includes(categoryUpper)) {
+    const activeSessionHours =
+      (Date.now() - new Date(currentSession.started).getTime()) / (1000 * 60 * 60);
+    totalHours += activeSessionHours;
+  }
+
+  return totalHours;
 }
 
 function isCurrentWeek(date) {
-    const { start, end } = getWeekDateRange();
-    return date >= start && date <= end;
+  const { start, end } = getWeekDateRange();
+  return date >= start && date <= end;
 }
 
 function getBacklogGoals() {
-    if (!weeklyGoals || !weeklyGoals.length) return [];
-    
-    const currentWeekStart = getWeekDateRange().start;
-    
-    return weeklyGoals
-        .filter(goal => {
-            if (!goal.weekStart) return false;
-            const goalWeekStart = new Date(goal.weekStart);
-            return goalWeekStart < currentWeekStart;
-        })
-        .sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart)); // Sort by most recent first
+  if (!weeklyGoals || !weeklyGoals.length) return [];
+
+  const currentWeekStart = getWeekDateRange().start;
+
+  return weeklyGoals
+    .filter((goal) => {
+      if (!goal.weekStart) return false;
+      const goalWeekStart = new Date(goal.weekStart);
+      return goalWeekStart < currentWeekStart;
+    })
+    .sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart)); // Sort by most recent first
 }
 
 function isGoalActive(category) {
-    if (!currentSession.started) return false;
-    const categoryUpper = category.toUpperCase();
-    return currentSession.topic.toUpperCase().includes(categoryUpper);
+  if (!currentSession.started) return false;
+  const categoryUpper = category.toUpperCase();
+  return currentSession.topic.toUpperCase().includes(categoryUpper);
 }
 
 function renderGoalsList(goals, container) {
-    goals.sort((a, b) => {
-        // If there's an active session, prioritize the active goal
-        if (currentSession.started) {
-            const aIsActive = isGoalActive(a.category);
-            const bIsActive = isGoalActive(b.category);
-            if (aIsActive && !bIsActive) return -1;
-            if (!aIsActive && bIsActive) return 1;
-        }
+  goals.sort((a, b) => {
+    // If there's an active session, prioritize the active goal
+    if (currentSession.started) {
+      const aIsActive = isGoalActive(a.category);
+      const bIsActive = isGoalActive(b.category);
+      if (aIsActive && !bIsActive) return -1;
+      if (!aIsActive && bIsActive) return 1;
+    }
 
-        // If neither is active or no current session, use the original sorting
-        const weekDiff = new Date(b.weekStart) - new Date(a.weekStart);
-        if (weekDiff !== 0) return weekDiff;
+    // If neither is active or no current session, use the original sorting
+    const weekDiff = new Date(b.weekStart) - new Date(a.weekStart);
+    if (weekDiff !== 0) return weekDiff;
 
-        const progressA = (calculateGoalProgress(a.category, a.weekStart) / a.hours) * 100;
-        const progressB = (calculateGoalProgress(b.category, b.weekStart) / b.hours) * 100;
-        return progressB - progressA;
-    });
+    const progressA = (calculateGoalProgress(a.category, a.weekStart) / a.hours) * 100;
+    const progressB = (calculateGoalProgress(b.category, b.weekStart) / b.hours) * 100;
+    return progressB - progressA;
+  });
 
-    goals.forEach((goal) => {
-        const progress = calculateGoalProgress(goal.category, goal.weekStart);
-        const percentage = Math.min((progress / goal.hours) * 100, 100);
-        const isActive = isGoalActive(goal.category);
-        
-        const goalIndex = weeklyGoals.findIndex(g => 
-            g.category === goal.category && 
-            g.weekStart === goal.weekStart
-        );
-        
-        const weekStart = new Date(goal.weekStart);
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6);
-        
-        const goalElement = document.createElement('div');
-        goalElement.className = `goal-item ${isActive ? 'active-goal' : ''}`;
-        goalElement.innerHTML = `
+  goals.forEach((goal) => {
+    const progress = calculateGoalProgress(goal.category, goal.weekStart);
+    const percentage = Math.min((progress / goal.hours) * 100, 100);
+    const isActive = isGoalActive(goal.category);
+
+    const goalIndex = weeklyGoals.findIndex(
+      (g) => g.category === goal.category && g.weekStart === goal.weekStart
+    );
+
+    const weekStart = new Date(goal.weekStart);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    const goalElement = document.createElement('div');
+    goalElement.className = `goal-item ${isActive ? 'active-goal' : ''}`;
+    goalElement.innerHTML = `
             <div class="goal-info">
                 <div>
                     <strong>${goal.category}</strong>
@@ -1076,275 +1101,276 @@ function renderGoalsList(goals, container) {
                 <button class="btn btn-danger btn-sm" onclick="deleteGoal(${goalIndex})">-</button>
             </div>
         `;
-        container.appendChild(goalElement);
-    });
+    container.appendChild(goalElement);
+  });
 }
 
-async function editGoal(index) {
-    const goal = weeklyGoals[index];
-    document.getElementById('editGoalCategory').value = goal.category;
-    document.getElementById('editGoalHours').value = goal.hours;
-    
-    // Fix date display
-    const date = new Date(goal.weekStart);
-    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-    document.getElementById('editGoalWeekStart').value = localDate.toISOString().split('T')[0];
-    
-    document.getElementById('editGoalModal').setAttribute('data-goal-index', index);
-    $('#editGoalModal').modal('show');
-}
+window.editGoal = async function (index) {
+  const goal = weeklyGoals[index];
+  document.getElementById('editGoalCategory').value = goal.category;
+  document.getElementById('editGoalHours').value = goal.hours;
+
+  // Fix date display
+  const date = new Date(goal.weekStart);
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  document.getElementById('editGoalWeekStart').value = localDate.toISOString().split('T')[0];
+
+  document.getElementById('editGoalModal').setAttribute('data-goal-index', index);
+  $('#editGoalModal').modal('show');
+};
 
 async function saveEditedGoal() {
-    const index = parseInt(document.getElementById('editGoalModal').getAttribute('data-goal-index'));
-    const category = document.getElementById('editGoalCategory').value.trim();
-    const hours = parseFloat(document.getElementById('editGoalHours').value);
-    
-    // Fix date handling
-    const selectedDate = document.getElementById('editGoalWeekStart').value;
-    const weekStart = new Date(selectedDate);
-    // Add timezone offset to keep the date as selected
-    weekStart.setMinutes(weekStart.getMinutes() + weekStart.getTimezoneOffset());
-    weekStart.setHours(0, 0, 0, 0);
+  const index = parseInt(document.getElementById('editGoalModal').getAttribute('data-goal-index'));
+  const category = document.getElementById('editGoalCategory').value.trim();
+  const hours = parseFloat(document.getElementById('editGoalHours').value);
 
-    if (!category || isNaN(hours) || hours <= 0) {
-        alert('Please fill all fields correctly');
-        return;
-    }
+  // Fix date handling
+  const selectedDate = document.getElementById('editGoalWeekStart').value;
+  const weekStart = new Date(selectedDate);
+  // Add timezone offset to keep the date as selected
+  weekStart.setMinutes(weekStart.getMinutes() + weekStart.getTimezoneOffset());
+  weekStart.setHours(0, 0, 0, 0);
 
-    weeklyGoals[index] = {
-        ...weeklyGoals[index],
-        category,
-        hours,
-        weekStart: weekStart.toISOString(),
-        weekNumber: getWeekNumber(weekStart)
-    };
+  if (!category || isNaN(hours) || hours <= 0) {
+    alert('Please fill all fields correctly');
+    return;
+  }
 
-    try {
-        await saveUserData();
-        $('#editGoalModal').modal('hide');
-        renderWeeklyGoals();
-        updateAnalytics();
-    } catch (err) {
-        console.error("Error updating goal:", err);
-        alert('Failed to update goal. Please try again.');
-    }
+  weeklyGoals[index] = {
+    ...weeklyGoals[index],
+    category,
+    hours,
+    weekStart: weekStart.toISOString(),
+    weekNumber: getWeekNumber(weekStart),
+  };
+
+  try {
+    await saveUserData();
+    $('#editGoalModal').modal('hide');
+    renderWeeklyGoals();
+    updateAnalytics();
+  } catch (err) {
+    console.error('Error updating goal:', err);
+    alert('Failed to update goal. Please try again.');
+  }
 }
 
 // Add this new utility function
 function getWeekNumber(date) {
-    const target = new Date(date);
-    target.setHours(0, 0, 0, 0);
-    target.setDate(target.getDate() + 3 - (target.getDay() + 6) % 7);
-    const weekStart = new Date(target.getFullYear(), 0, 4);
-    return 1 + Math.round(((target - weekStart) / 86400000 - 3 + (weekStart.getDay() + 6) % 7) / 7);
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  target.setDate(target.getDate() + 3 - ((target.getDay() + 6) % 7));
+  const weekStart = new Date(target.getFullYear(), 0, 4);
+  return 1 + Math.round(((target - weekStart) / 86400000 - 3 + ((weekStart.getDay() + 6) % 7)) / 7);
 }
 
 /**
  * Analytics and Visualization Functions
  */
 function updateAnalytics() {
-    updateCategoryChart();
-    updateDailyStudyChart();
-    renderWeeklyGoals();
+  updateCategoryChart();
+  updateDailyStudyChart();
+  renderWeeklyGoals();
 }
 
 function updateCategoryChart() {
-    const groupTimes = calculateWeeklyGroupTimes();
-    
-    const data = new google.visualization.DataTable();
-    data.addColumn('string', 'Category');
-    data.addColumn('number', 'Hours');
-    
-    Object.entries(groupTimes).forEach(([category, hours]) => {
-        data.addRow([`${category}`, hours]);
-    });
+  const groupTimes = calculateWeeklyGroupTimes();
 
-    const options = {
-        pieHole: 0.8,
-        height: "100%",
-        width: 200,
-        legend: { 
-            position: 'bottom',
-            alignment: 'end',
-                textStyle: {
-                fontSize: 11,
-                bold: true,
-                color: 'black',
-            },
-        },
-        chartArea: { 
-            width: '90%',
-            height: '90%',
-            top: 0,
-        },
-        // is3D: ≥true,
-        pieSliceText: 'label',
-        pieSliceTextStyle: {
-            color: 'black',
-            fontSize: 10,
-            bold: true,
-        },
-        tooltip: {
-            trigger: 'selection'
-        }
-    };
+  const data = new google.visualization.DataTable();
+  data.addColumn('string', 'Category');
+  data.addColumn('number', 'Hours');
 
-    const chart = new google.visualization.PieChart(document.getElementById('categoryChart'));
-    chart.draw(data, options);
+  Object.entries(groupTimes).forEach(([category, hours]) => {
+    data.addRow([`${category}`, hours]);
+  });
+
+  const options = {
+    pieHole: 0.8,
+    height: '100%',
+    width: 200,
+    legend: {
+      position: 'bottom',
+      alignment: 'end',
+      textStyle: {
+        fontSize: 11,
+        bold: true,
+        color: 'black',
+      },
+    },
+    chartArea: {
+      width: '90%',
+      height: '90%',
+      top: 0,
+    },
+    // is3D: ≥true,
+    pieSliceText: 'label',
+    pieSliceTextStyle: {
+      color: 'black',
+      fontSize: 10,
+      bold: true,
+    },
+    tooltip: {
+      trigger: 'selection',
+    },
+  };
+
+  const chart = new google.visualization.PieChart(document.getElementById('categoryChart'));
+  chart.draw(data, options);
 }
 
 function updateDailyStudyChart() {
-    const dailyStudyTime = calculateDailyStudyTime();
-    
-    const data = new google.visualization.DataTable();
-    data.addColumn('string', 'Date');
+  const dailyStudyTime = calculateDailyStudyTime();
 
-    // Get all unique groups
-    const groups = new Set();
-    Object.values(dailyStudyTime).forEach(groupsData => {
-        Object.keys(groupsData).forEach(group => groups.add(group));
+  const data = new google.visualization.DataTable();
+  data.addColumn('string', 'Date');
+
+  // Get all unique groups
+  const groups = new Set();
+  Object.values(dailyStudyTime).forEach((groupsData) => {
+    Object.keys(groupsData).forEach((group) => groups.add(group));
+  });
+
+  // Add columns for each group
+  groups.forEach((group) => data.addColumn('number', group));
+  data.addColumn({ type: 'number', role: 'annotation' }); // Add annotation column for total hours
+
+  // Get the last 7 dates including today
+  const today = new Date().toLocaleDateString();
+  const sortedDates = Object.keys(dailyStudyTime).sort((a, b) => new Date(a) - new Date(b));
+  const last7Dates = sortedDates.filter((date) => new Date(date) <= new Date(today)).slice(-7);
+
+  // Add rows for each date
+  last7Dates.forEach((date) => {
+    const groupsData = dailyStudyTime[date] || {};
+    const dateObj = new Date(date);
+    const formattedDate = `${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleDateString('en-GB')}`;
+    const row = [formattedDate];
+    let totalHours = 0;
+    groups.forEach((group) => {
+      const hours = groupsData[group] || 0;
+      row.push(hours);
+      totalHours += hours;
     });
+    row.push(totalHours); // Add total hours as annotation
+    data.addRow(row);
+  });
 
-    // Add columns for each group
-    groups.forEach(group => data.addColumn('number', group));
-    data.addColumn({ type: 'number', role: 'annotation' }); // Add annotation column for total hours
+  const options = {
+    title: 'Daily Study Time',
+    hAxis: {
+      title: 'Date',
+      slantedText: true,
+      slantedTextAngle: 45,
+    },
+    vAxis: { title: 'Hours' },
+    legend: { position: 'none' },
+    height: 400,
+    chartArea: { width: '80%', height: '70%' },
+    isStacked: true,
+    annotations: {
+      alwaysOutside: true,
+      textStyle: {
+        fontSize: 12,
+        auraColor: 'none',
+        color: 'black',
+      },
+    },
+  };
 
-    // Get the last 7 dates including today
-    const today = new Date().toLocaleDateString();
-    const sortedDates = Object.keys(dailyStudyTime).sort((a, b) => new Date(a) - new Date(b));
-    const last7Dates = sortedDates.filter(date => new Date(date) <= new Date(today)).slice(-7);
-
-    // Add rows for each date
-    last7Dates.forEach(date => {
-        const groupsData = dailyStudyTime[date] || {};
-        const dateObj = new Date(date);
-        const formattedDate = `${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleDateString('en-GB')}`;
-        const row = [formattedDate];
-        let totalHours = 0;
-        groups.forEach(group => {
-            const hours = groupsData[group] || 0;
-            row.push(hours);
-            totalHours += hours;
-        });
-        row.push(totalHours); // Add total hours as annotation
-        data.addRow(row);
-    });
-
-    const options = {
-        title: 'Daily Study Time',
-        hAxis: { 
-            title: 'Date',
-            slantedText: true,
-            slantedTextAngle: 45
-        },
-        vAxis: { title: 'Hours' },
-        legend: { position: 'none' },
-        height: 400,
-        chartArea: { width: '80%', height: '70%' },
-        isStacked: true,
-        annotations: {
-            alwaysOutside: true,
-            textStyle: {
-                fontSize: 12,
-                auraColor: 'none',
-                color: 'black'
-            }
-        }
-    };
-
-    const chart = new google.visualization.ColumnChart(document.getElementById('dailyStudyChart'));
-    chart.draw(data, options);
+  const chart = new google.visualization.ColumnChart(document.getElementById('dailyStudyChart'));
+  chart.draw(data, options);
 }
 
 function calculateWeeklyGroupTimes() {
-    const { start, end } = getWeekDateRange();
-    const groupTimes = {};
+  const { start, end } = getWeekDateRange();
+  const groupTimes = {};
 
-    // Filter sessions within the current week
-    const weekSessions = sessions.filter(session => {
-        const sessionDate = new Date(session.started);
-        return sessionDate >= start && sessionDate <= end;
-    });
+  // Filter sessions within the current week
+  const weekSessions = sessions.filter((session) => {
+    const sessionDate = new Date(session.started);
+    return sessionDate >= start && sessionDate <= end;
+  });
 
-    weekSessions.forEach(session => {
-        let group;
-        if (session.topic.includes(':')) {
-            group = session.topic.split(':')[0].trim().toUpperCase();
-        } else {
-            group = session.topic.split(' ')[0].trim().toUpperCase();
-        }
-        const duration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60); // Duration in hours
+  weekSessions.forEach((session) => {
+    let group;
+    if (session.topic.includes(':')) {
+      group = session.topic.split(':')[0].trim().toUpperCase();
+    } else {
+      group = session.topic.split(' ')[0].trim().toUpperCase();
+    }
+    const duration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60); // Duration in hours
 
-        groupTimes[group] = (groupTimes[group] || 0) + duration;
-    });
+    groupTimes[group] = (groupTimes[group] || 0) + duration;
+  });
 
-    return groupTimes;
+  return groupTimes;
 }
 
 function calculateDailyStudyTime() {
-    const dailyStudyTime = {};
+  const dailyStudyTime = {};
 
-    sessions.forEach(session => {
-        if (session.topic.toUpperCase().startsWith("LT:")) return;
+  sessions.forEach((session) => {
+    if (session.topic.toUpperCase().startsWith('LT:')) return;
 
-        const date = formatDate(session.started);
-        let group;
-        if (session.topic.includes(':')) {
-            group = session.topic.split(':')[0].trim().toUpperCase();
-        } else {
-            group = session.topic.split(' ')[0].trim().toUpperCase();
-        }
-        const duration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60); // Duration in hours
+    const date = formatDate(session.started);
+    let group;
+    if (session.topic.includes(':')) {
+      group = session.topic.split(':')[0].trim().toUpperCase();
+    } else {
+      group = session.topic.split(' ')[0].trim().toUpperCase();
+    }
+    const duration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60); // Duration in hours
 
-        if (!dailyStudyTime[date]) {
-            dailyStudyTime[date] = {};
-        }
+    if (!dailyStudyTime[date]) {
+      dailyStudyTime[date] = {};
+    }
 
-        dailyStudyTime[date][group] = (dailyStudyTime[date][group] || 0) + duration;
-    });
+    dailyStudyTime[date][group] = (dailyStudyTime[date][group] || 0) + duration;
+  });
 
-    return dailyStudyTime;
+  return dailyStudyTime;
 }
 
 // Add after calculateDailyStudyTime()
 function calculateProductivityScore() {
-    const { start, end } = getWeekDateRange();
-    let totalMinutes = 0;
-    let uniqueDays = new Set();
-    let longSessions = 0;
-    let totalSessions = 0;
+  const { start, end } = getWeekDateRange();
+  let totalMinutes = 0;
+  const uniqueDays = new Set();
+  let longSessions = 0;
+  let totalSessions = 0;
 
-    const weekSessions = sessions.filter(session => {
-        const sessionDate = new Date(session.started);
-        return sessionDate >= start && sessionDate <= end;
-    });
+  const weekSessions = sessions.filter((session) => {
+    const sessionDate = new Date(session.started);
+    return sessionDate >= start && sessionDate <= end;
+  });
 
-    weekSessions.forEach(session => {
-        const sessionDate = new Date(session.started).toLocaleDateString();
-        uniqueDays.add(sessionDate);
-        
-        const duration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60); // minutes
-        totalMinutes += duration;
-        totalSessions++;
-        
-        if (duration >= 45) { // Sessions longer than 45 minutes
-            longSessions++;
-        }
-    });
+  weekSessions.forEach((session) => {
+    const sessionDate = new Date(session.started).toLocaleDateString();
+    uniqueDays.add(sessionDate);
 
-    return {
-        productivity: ((totalMinutes / (7 * weeklyTarget/7 * 60)) * 100).toFixed(1), // % of 8-hour daily target
-        consistency: ((uniqueDays.size / 7) * 100).toFixed(1), // % of days active
-        focus: totalSessions > 0 ? ((longSessions / totalSessions) * 100).toFixed(1) : "0.0" // % of focused sessions
-    };
+    const duration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60); // minutes
+    totalMinutes += duration;
+    totalSessions++;
+
+    if (duration >= 45) {
+      // Sessions longer than 45 minutes
+      longSessions++;
+    }
+  });
+
+  return {
+    productivity: ((totalMinutes / (((7 * weeklyTarget) / 7) * 60)) * 100).toFixed(1), // % of 8-hour daily target
+    consistency: ((uniqueDays.size / 7) * 100).toFixed(1), // % of days active
+    focus: totalSessions > 0 ? ((longSessions / totalSessions) * 100).toFixed(1) : '0.0', // % of focused sessions
+  };
 }
 
 function addProductivityDashboard() {
-    const scores = calculateProductivityScore();
-    const dashboard = document.getElementById('productivityDashboard');
-    if (!dashboard) return;
+  const scores = calculateProductivityScore();
+  const dashboard = document.getElementById('productivityDashboard');
+  if (!dashboard) return;
 
-    dashboard.innerHTML = `
+  dashboard.innerHTML = `
         <div class="card mb-4">
             <div class="card-header cursor-pointer" id="productivityHeader">
                 <h5 class="mb-0 h4 d-flex justify-content-between align-items-center">
@@ -1397,122 +1423,124 @@ function addProductivityDashboard() {
         </div>
     `;
 
-    // Add click event listener for toggling
-    const header = document.getElementById('productivityHeader');
-    const metrics = document.getElementById('productivityMetrics');
-    const toggleIcon = header.querySelector('.toggle-icon');
-    
-    header.addEventListener('click', () => {
-        const isVisible = metrics.style.display === 'block';
-        metrics.style.display = isVisible ? 'none' : 'block';
-        toggleIcon.textContent = isVisible ? '▼' : '▲';
-    });
+  // Add click event listener for toggling
+  const header = document.getElementById('productivityHeader');
+  const metrics = document.getElementById('productivityMetrics');
+  const toggleIcon = header.querySelector('.toggle-icon');
+
+  header.addEventListener('click', () => {
+    const isVisible = metrics.style.display === 'block';
+    metrics.style.display = isVisible ? 'none' : 'block';
+    toggleIcon.textContent = isVisible ? '▼' : '▲';
+  });
 }
 
 // Add after loadUserData function
 async function saveWeeklyTarget(target) {
-    try {
-        await docClient.update({
-            TableName: "LearningTracker",
-            Key: { userId },
-            UpdateExpression: "SET weeklyTarget = :target",
-            ExpressionAttributeValues: {
-                ":target": target
-            }
-        }).promise();
-        weeklyTarget = target;
-        addProductivityDashboard();
-    } catch (err) {
-        console.error("Error saving weekly target:", err);
-        alert("Failed to save weekly target");
-    }
+  try {
+    await docClient
+      .update({
+        TableName: 'LearningTracker',
+        Key: { userId },
+        UpdateExpression: 'SET weeklyTarget = :target',
+        ExpressionAttributeValues: {
+          ':target': target,
+        },
+      })
+      .promise();
+    weeklyTarget = target;
+    addProductivityDashboard();
+  } catch (err) {
+    console.error('Error saving weekly target:', err);
+    alert('Failed to save weekly target');
+  }
 }
 
 /**
  * Event Listeners
  */
 function initializeEventListeners() {
-    domElements.submitPassword.addEventListener("click", handleLogin);
+  domElements.submitPassword.addEventListener('click', handleLogin);
 
-    domElements.passwordInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            domElements.submitPassword.click();
-        }
+  domElements.passwordInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      domElements.submitPassword.click();
+    }
+  });
+
+  domElements.newTodoInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      domElements.addTodoBtn.click();
+    }
+  });
+
+  domElements.topicInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      domElements.clockInBtn.click();
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    handleLogout().catch((err) => {
+      console.error('Error during logout:', err);
     });
+  });
 
-    domElements.newTodoInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            domElements.addTodoBtn.click();
-        }
-    });
+  domElements.clockInBtn.addEventListener('click', handleClockIn);
+  domElements.clockOutBtn.addEventListener('click', handleClockOut);
+  domElements.addTodoBtn.addEventListener('click', addTodo);
 
-    domElements.topicInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            domElements.clockInBtn.click();
-        }
-    });
+  document.getElementById('exportDataBtn').addEventListener('click', exportToCSV);
 
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-        handleLogout().catch(err => {
-            console.error("Error during logout:", err);
-        });
-    });
+  document.getElementById('addGoalBtn').addEventListener('click', addWeeklyGoal);
+  document.getElementById('goalCategory').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      document.getElementById('goalHours').focus();
+    }
+  });
+  document.getElementById('goalHours').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      addWeeklyGoal();
+    }
+  });
 
-    domElements.clockInBtn.addEventListener("click", handleClockIn);
-    domElements.clockOutBtn.addEventListener("click", handleClockOut);
-    domElements.addTodoBtn.addEventListener("click", addTodo);
+  // Add weekly target modal handlers
+  document.getElementById('saveWeeklyTarget').addEventListener('click', async () => {
+    const input = document.getElementById('weeklyTargetInput');
+    const newTarget = parseFloat(input.value);
+    if (newTarget > 0 && newTarget <= 168) {
+      await saveWeeklyTarget(newTarget);
+      $('#weeklyTargetModal').modal('hide');
+    } else {
+      alert('Please enter a valid number of hours (1-168)');
+    }
+  });
 
-    document.getElementById("exportDataBtn").addEventListener("click", exportToCSV);
+  $('#weeklyTargetModal').on('show.bs.modal', function () {
+    document.getElementById('weeklyTargetInput').value = weeklyTarget;
+  });
 
-    document.getElementById('addGoalBtn').addEventListener('click', addWeeklyGoal);
-    document.getElementById('goalCategory').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            document.getElementById('goalHours').focus();
-        }
-    });
-    document.getElementById('goalHours').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            addWeeklyGoal();
-        }
-    });
+  // Add keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.key) {
+        case 'i':
+          e.preventDefault();
+          if (!domElements.clockInBtn.disabled) domElements.clockInBtn.click();
+          break;
+        case 'o':
+          e.preventDefault();
+          if (!domElements.clockOutBtn.disabled) domElements.clockOutBtn.click();
+          break;
+      }
+    }
+  });
 
-    // Add weekly target modal handlers
-    document.getElementById('saveWeeklyTarget').addEventListener('click', async () => {
-        const input = document.getElementById('weeklyTargetInput');
-        const newTarget = parseFloat(input.value);
-        if (newTarget > 0 && newTarget <= 168) {
-            await saveWeeklyTarget(newTarget);
-            $('#weeklyTargetModal').modal('hide');
-        } else {
-            alert('Please enter a valid number of hours (1-168)');
-        }
-    });
+  document.getElementById('saveEditedGoalBtn').addEventListener('click', saveEditedGoal);
 
-    $('#weeklyTargetModal').on('show.bs.modal', function () {
-        document.getElementById('weeklyTargetInput').value = weeklyTarget;
-    });
-
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey || e.metaKey) {
-            switch(e.key) {
-                case 'i':
-                    e.preventDefault();
-                    if (!domElements.clockInBtn.disabled) domElements.clockInBtn.click();
-                    break;
-                case 'o':
-                    e.preventDefault();
-                    if (!domElements.clockOutBtn.disabled) domElements.clockOutBtn.click();
-                    break;
-            }
-        }
-    });
-
-    document.getElementById('saveEditedGoalBtn').addEventListener('click', saveEditedGoal);
-
-    // Add styles for drag and drop
-    const style = document.createElement('style');
-    style.textContent = `
+  // Add styles for drag and drop
+  const style = document.createElement('style');
+  style.textContent = `
         .sortable-ghost {
             opacity: 0.4;
             background-color: #c8ebfb;
@@ -1526,28 +1554,28 @@ function initializeEventListeners() {
             color: #333;
         }
     `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }
 
 /**
  * Application Initialization
  */
 window.onload = async () => {
-    if (sessionStorage.getItem("loggedIn") === "true") {
-        userId = sessionStorage.getItem("userId"); // Restore userId
-        if (userId) {
-            await loadUserData();
-            await loadWeeklyGoals();
-        }
+  if (sessionStorage.getItem('loggedIn') === 'true') {
+    userId = sessionStorage.getItem('userId'); // Restore userId
+    if (userId) {
+      await loadUserData();
+      await loadWeeklyGoals();
     }
-    updateLocalTime();
-    setInterval(updateLocalTime, 1000);
-    google.charts.load('current', { packages: ['corechart'] });
-    google.charts.setOnLoadCallback(updateAnalytics);
+  }
+  updateLocalTime();
+  setInterval(updateLocalTime, 1000);
+  google.charts.load('current', { packages: ['corechart'] });
+  google.charts.setOnLoadCallback(updateAnalytics);
 
-    initializeEventListeners();
-    addProductivityDashboard();
+  initializeEventListeners();
+  addProductivityDashboard();
 };
 
-google.charts.load('current', {'packages':['corechart']});
+google.charts.load('current', { packages: ['corechart'] });
 google.charts.setOnLoadCallback(updateCategoryChart);
