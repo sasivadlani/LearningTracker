@@ -126,6 +126,8 @@ body {
     cursor: move; /* Show move cursor */
     user-select: none; /* Prevent text selection while dragging */
     transition: background-color 0.2s ease;
+    margin-bottom: 5px;
+    position: relative; 
 }
 
 #todoList ul li .form-check {
@@ -158,20 +160,30 @@ body {
     align-items: center;
     justify-content: start;
     max-width: 100%; 
+    position: relative;
+}
+
+
+#todoItems li::after {
+    content: attr(data-full-text);
+    position: absolute;
+    padding: 2px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition-delay: 1.2s;
+    word-break: break-word;
 }
 
 #todoItems li:hover::after {
-    content: attr(data-full-text);
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    margin: 2px;
-    padding: 2px;
-    white-space: normal;
-    word-wrap: break-word;
-    max-width: 100%;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  }
+    opacity: 1;
+    visibility: visible;
+}
 
 #todoList ul li.intermediate {
     text-decoration: none;
