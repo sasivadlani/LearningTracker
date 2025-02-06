@@ -136,7 +136,6 @@ body {
     align-items: center;
     justify-content: space-between;
     cursor: move;
-    /* margin-right: 10px; */
 }
 
 #todoList ul li .form-check input[type="checkbox"] {
@@ -210,17 +209,27 @@ table th,
 table td {
     padding: 8px;
     border: 1px solid #ddd;
-    text-align: center;
+    text-align: start;
     white-space: nowrap;
+    align-items: center;
+    vertical-align: middle !important;
 }
 
 table th.topic,
-table td.topic {
+table td.topic-cell {
     width: auto;
+    max-width: 500px;
     white-space: normal;
-    max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.2;
+    max-height: 2.4em; /* allows for 2 lines of text */
+    min-width: 200px; /* ensures minimum readability */
+}
+
+table td.topic-cell {
+    word-break: break-word;
+    padding: 8px;
 }
 
 table th.comment,
@@ -229,6 +238,20 @@ table td.comment {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 150px;
+}
+
+table th.comment,
+table td.comment-cell {
+    width: auto;
+    max-width: 300px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    max-height: 2.4em;
+    min-width: 150px;
+    word-break: break-word;
+    padding: 8px;
 }
 
 table th.started,
@@ -244,12 +267,6 @@ table td.actions {
     width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-table th.actions,
-table td.actions {
-    width: 1%;
-    white-space: nowrap;
 }
 
 table td.actions.editing {
@@ -326,32 +343,6 @@ table td.actions .btn i {
     border: 1px solid #ddd;
     border-radius: 5px;
     margin-bottom: 8px;
-}
-
-.tooltip-cell {
-    position: relative;
-}
-
-.tooltip-cell::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: 0%;
-    padding: 2px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    border-radius: 4px;
-    font-size: 14px;
-    max-width: 400px;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    transition-delay: 0.5s;
-}
-
-.tooltip-cell:hover::after {
-    opacity: 1;
-    visibility: visible;
 }
 
 .month-collapsible {

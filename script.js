@@ -499,32 +499,26 @@ function loadSessions(sessions) {
                                         (session) => `
                                         <tr data-session-index="${sessions.indexOf(session)}" 
                                             class="${session.autoClockOut ? 'auto-clockout-row' : ''}">
-                                            <td class="topic-cell tooltip-cell" data-tooltip="${session.topic}">
-                                                <input type="text" class="edit-input" value="${session.topic}" disabled />
+                                            <td class="topic-cell">
+                                                ${session.topic}
                                             </td>
-                                            <td><input type="text" class="edit-input" value="${formatTime(session.started)}" disabled /></td>
-                                            <td><input type="text" class="edit-input" value="${formatTime(session.ended)}" disabled /></td>
-                                            <td><input type="number" class="edit-input" value="${session.breakTime || 0}" disabled /></td>
+                                            <td>${formatTime(session.started)}</td>
+                                            <td>${formatTime(session.ended)}</td>
+                                            <td>${session.breakTime || 0}</td>
                                             <td>${session.totalTime}</td>
-                                            <td class="comment-cell tooltip-cell" data-tooltip="${session.comment || ''}">
-                                                <input type="text" class="edit-input comment-input" 
-                                                    value="${session.comment || ''}" 
-                                                    disabled 
-                                                    style="${session.autoClockOut ? 'color: #856404; font-style: italic;' : ''}"
-                                                />
+                                            <td class="comment-cell">
+                                                ${session.comment || ''}
                                             </td>
                                             <td class="actions">
                                                 <div class="btn-group-vertical">
-                                                    <button class="edit-btn btn btn-outline-primary" data-session-index="${sessions.indexOf(session)}" title="Edit">
+                                                    <button class="edit-session-btn btn btn-outline-primary" 
+                                                        onclick="editSession(${sessions.indexOf(session)})" 
+                                                        title="Edit">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
-                                                    <button class="save-btn btn btn-outline-success" data-session-index="${sessions.indexOf(session)}" style="display: none;" title="Save">
-                                                        <i class="bi bi-check"></i>
-                                                    </button>
-                                                    <button class="cancel-btn btn btn-outline-secondary" data-session-index="${sessions.indexOf(session)}" style="display: none;" title="Cancel">
-                                                        <i class="bi bi-x"></i>
-                                                    </button>
-                                                    <button class="delete-btn btn btn-outline-danger" data-session-index="${sessions.indexOf(session)}" title="Delete">
+                                                    <button class="delete-btn btn btn-outline-danger" 
+                                                        data-session-index="${sessions.indexOf(session)}" 
+                                                        title="Delete">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
@@ -532,8 +526,8 @@ function loadSessions(sessions) {
                                             ${
                                               session.autoClockOut
                                                 ? `<div class="alert alert-warning mt-1 mb-1" role="alert">
-                                                <i class="bi bi-exclamation-triangle"></i> Auto clocked out after 6 hours
-                                            </div>`
+                                                    <i class="bi bi-exclamation-triangle"></i> Auto clocked out after 6 hours
+                                                </div>`
                                                 : ''
                                             }
                                         </tr>
@@ -1622,6 +1616,26 @@ function initializeEventListeners() {
         }
     `;
   document.head.appendChild(style);
+
+  document.getElementById('saveEditedSessionBtn').addEventListener('click', saveEditedSession);
+
+  // Add Enter key listeners for edit session modal fields
+  const editSessionFields = [
+    'editSessionTopic',
+    'editSessionStarted',
+    'editSessionEnded',
+    'editSessionBreak',
+    'editSessionComment',
+  ];
+
+  editSessionFields.forEach((fieldId) => {
+    document.getElementById(fieldId).addEventListener('keypress', async (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        await saveEditedSession();
+      }
+    });
+  });
 }
 
 /**
@@ -1646,3 +1660,92 @@ window.onload = async () => {
 
 google.charts.load('current', { packages: ['corechart'] });
 google.charts.setOnLoadCallback(updateCategoryChart);
+
+// Add these new functions for modal editing
+window.editSession = function (index) {
+  const session = sessions[index];
+  document.getElementById('editSessionTopic').value = session.topic;
+  document.getElementById('editSessionStarted').value = new Date(session.started)
+    .toTimeString()
+    .slice(0, 5);
+  document.getElementById('editSessionEnded').value = new Date(session.ended)
+    .toTimeString()
+    .slice(0, 5);
+  document.getElementById('editSessionBreak').value = session.breakTime || 0;
+  document.getElementById('editSessionComment').value = session.comment || '';
+
+  document.getElementById('editSessionModal').setAttribute('data-session-index', index);
+  $('#editSessionModal').modal('show');
+};
+
+async function saveEditedSession() {
+  const index = parseInt(
+    document.getElementById('editSessionModal').getAttribute('data-session-index')
+  );
+  const session = sessions[index];
+  const sessionDate = new Date(session.started).toLocaleDateString();
+
+  const topic = document.getElementById('editSessionTopic').value.trim();
+  const startTime = document.getElementById('editSessionStarted').value;
+  const endTime = document.getElementById('editSessionEnded').value;
+  const breakTime = parseInt(document.getElementById('editSessionBreak').value) || 0;
+  const comment = document.getElementById('editSessionComment').value.trim();
+
+  if (!topic || !startTime || !endTime) {
+    alert('Please fill all required fields');
+    return;
+  }
+
+  // Create Date objects for start and end times
+  const startDate = new Date(`${sessionDate} ${startTime}`);
+  const endDate = new Date(`${sessionDate} ${endTime}`);
+
+  // If end time is before start time, assume it's the next day
+  if (endDate < startDate) {
+    endDate.setDate(endDate.getDate() + 1);
+  }
+
+  // Calculate total session time in minutes
+  const totalSessionMinutes = (endDate - startDate) / (1000 * 60);
+
+  // Validate break time
+  if (breakTime < 0) {
+    alert('Break time cannot be negative');
+    return;
+  }
+
+  if (breakTime > totalSessionMinutes) {
+    alert(
+      'Error: Break time cannot be longer than the total session time!\n' +
+        `Session duration: ${Math.floor(totalSessionMinutes)} minutes\n` +
+        `Entered break time: ${breakTime} minutes`
+    );
+    return;
+  }
+
+  const totalMilliseconds = endDate - startDate;
+  const breakMilliseconds = breakTime * 60 * 1000;
+  const netMilliseconds = totalMilliseconds - breakMilliseconds;
+
+  sessions[index] = {
+    ...session,
+    topic,
+    started: startDate.getTime(),
+    ended: endDate.getTime(),
+    breakTime,
+    totalTime: calculateTotalTime(netMilliseconds),
+    comment,
+  };
+
+  try {
+    await saveUserData();
+    $('#editSessionModal').modal('hide');
+    const openSections = getOpenSections();
+    loadSessions(sessions);
+    setOpenSections(openSections);
+    updateAnalytics();
+  } catch (err) {
+    console.error('Error updating session:', err);
+    alert('Failed to update session. Please try again.');
+  }
+}
