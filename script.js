@@ -1548,16 +1548,29 @@ async function saveWeeklyTarget(target) {
   }
 }
 
-// Add after loadUserData function
-async function loadStickyNote() {
-  const noteElement = document.querySelector('#stickyNote .note-text');
-  noteElement.textContent = stickyNote;
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
-  // Add input handler
-  noteElement.addEventListener('input', async () => {
-    stickyNote = noteElement.textContent;
-    await saveUserData();
-  });
+async function loadStickyNote() {
+    const noteElement = document.querySelector('#stickyNote .note-text');
+    noteElement.textContent = stickyNote;
+    // Debounce the save operation - only save after 3 second of no typing
+    const debouncedSave = debounce(async () => {
+        await saveUserData();
+    }, 3000);
+    noteElement.addEventListener('input', () => {
+        stickyNote = noteElement.textContent;
+        debouncedSave();
+    });
 }
 
 /**

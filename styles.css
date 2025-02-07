@@ -858,6 +858,10 @@ table td.breakTime .edit-input {
     #localTime {
         font-size: 1.5rem;
     }
+
+    #weeklyStats, #analytics {
+        display: none;
+    }
 }
 
 @media screen and (max-width: 576px) {
@@ -900,6 +904,10 @@ table td.breakTime .edit-input {
     }
 
     .keyboard-shortcut {
+        display: none;
+    }
+
+    #weeklyStats, #analytics {
         display: none;
     }
 }
