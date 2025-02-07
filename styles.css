@@ -103,7 +103,6 @@ body {
 
 #todoList {
     margin-top: 20px;
-    background: #fff;
     padding: 10px;
     min-width: 220px;
     border-radius: 5px;
@@ -170,7 +169,7 @@ body {
     text-decoration: line-through;
     text-decoration-thickness: 2px;
     color: #999;
-    background-color: #f8f9fa;
+    background-color: #e9eaec;
 }
 
 table {
@@ -959,8 +958,8 @@ table td.breakTime .edit-input {
 
 /* Sticky Notes Styles */
 #stickyNotes {
-    background: #fff;
     padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     border-radius: 5px;
     margin-bottom: 15px;
     margin-top: 165px;
