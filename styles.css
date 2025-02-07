@@ -842,13 +842,36 @@ table td.breakTime .edit-input {
     }
 
     .goal-item {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
+        padding: 8px;
     }
 
     .goal-actions {
-        margin-top: 10px;
-        justify-content: flex-end;
+        margin-top: 0;
+        margin-left: 8px;
+        flex-shrink: 0;
+    }
+
+    .goal-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .goal-progress {
+        margin: 4px 0;
+    }
+
+    .goal-info > div:first-child {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 4px;
+    }
+
+    .goal-item .progress {
+        min-width: 100px;
+        flex: 1;
     }
 
     #header h1 {
@@ -932,4 +955,29 @@ table td.breakTime .edit-input {
         background-color: #e9ecef;
         opacity: 0.8;
     }
+}
+
+#currentSessionGoal {
+    background-color: #e8fff3;
+    border-left: 3px solid #28a745;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    display: none;
+}
+
+#currentSessionGoal .progress {
+    height: 20px;
+    margin: 5px 0;
+}
+
+#currentSessionGoal h4 {
+    margin-bottom: 10px;
+    color: #155724;
+}
+
+#currentSessionGoal .goal-item {
+    background-color: rgba(255, 255, 255, 0.7);
+    border: none;
+    margin-bottom: 0;
 }

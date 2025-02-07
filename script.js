@@ -296,10 +296,7 @@ function startTimer(startedTime) {
     if (hours >= 6) {
       autoClockOut();
     }
-
-    if (seconds === 0) {
-      renderWeeklyGoals();
-    }
+    renderWeeklyGoals();
   }, 1000);
 }
 
@@ -941,45 +938,134 @@ function isGoalCompleted(goal) {
 }
 
 function renderWeeklyGoals() {
-  const goalsContainer = document.getElementById('goalsContainer');
-  if (!goalsContainer) return;
+    const goalsContainer = document.getElementById('goalsContainer');
+    if (!goalsContainer) return;
 
-  const { start, end } = getWeekDateRange();
-  const dateRange = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+    const { start, end } = getWeekDateRange();
+    const dateRange = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
 
-  // Get current week's goals (excluding completed ones)
-  const currentWeekGoals = weeklyGoals.filter(
-    (goal) => (!goal.weekStart || isCurrentWeek(new Date(goal.weekStart))) && !isGoalCompleted(goal)
-  );
+    const allGoals = [...weeklyGoals];
+    const activeGoal = allGoals.find(goal => isGoalActive(goal.category));
+    const currentWeekGoals = allGoals.filter(goal => {
+        if (!goal.weekStart || isCurrentWeek(new Date(goal.weekStart))) {
+            return !isGoalCompleted(goal) || goal === activeGoal;
+        }
+        return false;
+    });
 
-  // Get backlog goals (excluding completed ones)
-  const backlogGoals = getBacklogGoals().filter((goal) => !isGoalCompleted(goal));
+    const backlogGoals = getBacklogGoals().filter(goal => {
+        return !isGoalCompleted(goal) || goal === activeGoal;
+    });
+    const completedGoals = allGoals.filter(goal => 
+        isGoalCompleted(goal) && goal !== activeGoal
+    );
 
-  // Get completed goals
-  const completedGoals = weeklyGoals.filter((goal) => isGoalCompleted(goal));
-
-  goalsContainer.innerHTML = `
+    goalsContainer.innerHTML = `
         <div class="text-muted small mb-2">Week: ${dateRange}</div>
+        <div id="currentSessionGoal" style="display: ${activeGoal ? 'block' : 'none'}"></div>
         <div id="currentWeekGoals"></div>
         ${backlogGoals.length ? '<div id="backlogGoals" class="mt-3"><h5 class="text-danger">Backlog</h5></div>' : ''}
         ${completedGoals.length ? '<div id="completedGoals" class="mt-3"><h5 class="text-success">Completed Goals</h5></div>' : ''}
     `;
 
-  // Render current week's goals
-  const currentWeekContainer = document.getElementById('currentWeekGoals');
-  renderGoalsList(currentWeekGoals, currentWeekContainer);
+    // Render active goal separately if exists
+    if (activeGoal) {
+        const currentSessionGoalContainer = document.getElementById('currentSessionGoal');
+        renderGoalsList([activeGoal], currentSessionGoalContainer, true);
+        
+        // Filter out active goal from other sections
+        const remainingCurrentWeekGoals = currentWeekGoals.filter(goal => goal !== activeGoal);
+        const remainingBacklogGoals = backlogGoals.filter(goal => goal !== activeGoal);
 
-  // Render backlog if exists
-  if (backlogGoals.length) {
-    const backlogContainer = document.getElementById('backlogGoals');
-    renderGoalsList(backlogGoals, backlogContainer);
-  }
+        // Render remaining goals
+        const currentWeekContainer = document.getElementById('currentWeekGoals');
+        renderGoalsList(remainingCurrentWeekGoals, currentWeekContainer);
 
-  // Render completed goals if exists
-  if (completedGoals.length) {
-    const completedContainer = document.getElementById('completedGoals');
-    renderGoalsList(completedGoals, completedContainer);
-  }
+        if (remainingBacklogGoals.length) {
+            const backlogContainer = document.getElementById('backlogGoals');
+            renderGoalsList(remainingBacklogGoals, backlogContainer);
+        }
+    } else {
+        // Render all non-completed goals if no active goal
+        const currentWeekContainer = document.getElementById('currentWeekGoals');
+        renderGoalsList(currentWeekGoals, currentWeekContainer);
+
+        if (backlogGoals.length) {
+            const backlogContainer = document.getElementById('backlogGoals');
+            renderGoalsList(backlogGoals, backlogContainer);
+        }
+    }
+
+    // Render completed goals last
+    if (completedGoals.length) {
+        const completedContainer = document.getElementById('completedGoals');
+        renderGoalsList(completedGoals, completedContainer);
+    }
+}
+
+function renderGoalsList(goals, container, isCurrentSession = false) {
+    if (isCurrentSession) {
+        container.innerHTML = '';
+    }
+
+    goals.sort((a, b) => {
+        // Always prioritize active goals first, regardless of completion status
+        const aIsActive = isGoalActive(a.category);
+        const bIsActive = isGoalActive(b.category);
+        if (aIsActive && !bIsActive) return -1;
+        if (!aIsActive && bIsActive) return 1;
+
+        // For non-active goals, sort by week and progress
+        const weekDiff = new Date(b.weekStart) - new Date(a.weekStart);
+        if (weekDiff !== 0) return weekDiff;
+
+        const progressA = (calculateGoalProgress(a.category, a.weekStart) / a.hours) * 100;
+        const progressB = (calculateGoalProgress(b.category, b.weekStart) / b.hours) * 100;
+        return progressB - progressA;
+    });
+
+    goals.forEach((goal) => {
+        const progress = calculateGoalProgress(goal.category, goal.weekStart);
+        const percentage = Math.min((progress / goal.hours) * 100, 100);
+        const isActive = isGoalActive(goal.category);
+
+        const goalIndex = weeklyGoals.findIndex(
+            (g) => g.category === goal.category && g.weekStart === goal.weekStart
+        );
+
+        const weekStart = new Date(goal.weekStart);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+
+        const goalElement = document.createElement('div');
+        goalElement.className = `goal-item ${isActive ? 'active-goal' : ''}`;
+        goalElement.innerHTML = `
+                <div class="goal-info">
+                    <div>
+                        <strong>${goal.category}</strong>
+                        ${isActive ? '<span class="active-indicator"><i class="bi bi-clock-fill text-success"></i></span>' : ''}
+                        : ${progress.toFixed(1)}/${goal.hours}h
+                    </div>
+                    <div class="progress goal-progress">
+                        <div class="progress-bar ${percentage >= 100 ? 'bg-success' : percentage >= 70 ? 'bg-info' : 'bg-primary'}" 
+                             role="progressbar" 
+                             style="width: ${percentage}%" 
+                             aria-valuenow="${percentage}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            ${percentage.toFixed(0)}%
+                        </div>
+                    </div>
+                </div>
+                <div class="goal-actions">
+                    <button class="btn btn-sm btn-outline-secondary edit-goal-btn" onclick="editGoal(${goalIndex})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteGoal(${goalIndex})">-</button>
+                </div>
+            `;
+        container.appendChild(goalElement);
+    });
 }
 
 async function addWeeklyGoal() {
@@ -1095,7 +1181,9 @@ function calculateGoalProgress(category, weekStart = null) {
     const sessionDate = new Date(session.started);
     if (sessionDate >= start && sessionDate <= end) {
       if (session.topic.toUpperCase().includes(categoryUpper)) {
-        totalHours += (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60);
+        const sessionDuration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60);
+        const breakHours = ((session.breakTime || 0) / 60);
+        totalHours += (sessionDuration - breakHours);
       }
     }
   });
@@ -1132,69 +1220,6 @@ function isGoalActive(category) {
   if (!currentSession.started) return false;
   const categoryUpper = category.toUpperCase();
   return currentSession.topic.toUpperCase().includes(categoryUpper);
-}
-
-function renderGoalsList(goals, container) {
-  goals.sort((a, b) => {
-    // If there's an active session, prioritize the active goal
-    if (currentSession.started) {
-      const aIsActive = isGoalActive(a.category);
-      const bIsActive = isGoalActive(b.category);
-      if (aIsActive && !bIsActive) return -1;
-      if (!aIsActive && bIsActive) return 1;
-    }
-
-    // If neither is active or no current session, use the original sorting
-    const weekDiff = new Date(b.weekStart) - new Date(a.weekStart);
-    if (weekDiff !== 0) return weekDiff;
-
-    const progressA = (calculateGoalProgress(a.category, a.weekStart) / a.hours) * 100;
-    const progressB = (calculateGoalProgress(b.category, b.weekStart) / b.hours) * 100;
-    return progressB - progressA;
-  });
-
-  goals.forEach((goal) => {
-    const progress = calculateGoalProgress(goal.category, goal.weekStart);
-    const percentage = Math.min((progress / goal.hours) * 100, 100);
-    const isActive = isGoalActive(goal.category);
-
-    const goalIndex = weeklyGoals.findIndex(
-      (g) => g.category === goal.category && g.weekStart === goal.weekStart
-    );
-
-    const weekStart = new Date(goal.weekStart);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
-
-    const goalElement = document.createElement('div');
-    goalElement.className = `goal-item ${isActive ? 'active-goal' : ''}`;
-    goalElement.innerHTML = `
-            <div class="goal-info">
-                <div>
-                    <strong>${goal.category}</strong>
-                    ${isActive ? '<span class="active-indicator"><i class="bi bi-clock-fill text-success"></i></span>' : ''}
-                    : ${progress.toFixed(1)}/${goal.hours}h
-                </div>
-                <div class="progress goal-progress">
-                    <div class="progress-bar ${percentage >= 100 ? 'bg-success' : percentage >= 70 ? 'bg-info' : 'bg-primary'}" 
-                         role="progressbar" 
-                         style="width: ${percentage}%" 
-                         aria-valuenow="${percentage}" 
-                         aria-valuemin="0" 
-                         aria-valuemax="100">
-                        ${percentage.toFixed(0)}%
-                    </div>
-                </div>
-            </div>
-            <div class="goal-actions">
-                <button class="btn btn-sm btn-outline-secondary edit-goal-btn" onclick="editGoal(${goalIndex})">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-danger btn-sm" onclick="deleteGoal(${goalIndex})">-</button>
-            </div>
-        `;
-    container.appendChild(goalElement);
-  });
 }
 
 window.editGoal = async function (index) {
