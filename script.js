@@ -75,6 +75,7 @@ async function handleLogin() {
 
     if (data.Item.password === password) {
       userId = inputUserId; // Set the userId after successful login
+      document.getElementById('logoutBtn').classList.remove('d-none'); // Show logout button
       await loadUserData();
     } else {
       alert('Invalid Password');
@@ -117,6 +118,7 @@ async function handleLogout() {
   document.getElementById('analytics').style.display = 'none';
   document.getElementById('productivityDashboard').style.display = 'none';
   document.getElementById('stickyNotes').classList.add('d-none');
+  document.getElementById('logoutBtn').classList.add('d-none');
   domElements.passwordInput.value = '';
   domElements.topicInput.value = '';
   domElements.todoList.classList.add('d-none');
@@ -880,21 +882,24 @@ function loadTodos(todoList) {
 
   // Initialize Sortable
   if (!domElements.todoItems.sortable) {
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     domElements.todoItems.sortable = new Sortable(domElements.todoItems, {
-      animation: 150,
-      ghostClass: 'sortable-ghost',
-      dragClass: 'sortable-drag',
-      filter: '.form-check-input', // Only prevent dragging from checkbox
-      onEnd: async function (evt) {
-        const newIndex = evt.newIndex;
-        const oldIndex = evt.oldIndex;
-        const item = todos.splice(oldIndex, 1)[0];
-        todos.splice(newIndex, 0, item);
-        await saveUserData();
-        loadTodos(todos);
-      },
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        dragClass: 'sortable-drag',
+        filter: '.form-check-input',
+        delay: isTouchDevice ? 300 : 0,
+        delayOnTouchOnly: true,
+        onEnd: async function (evt) {
+            const newIndex = evt.newIndex;
+            const oldIndex = evt.oldIndex;
+            const item = todos.splice(oldIndex, 1)[0];
+            todos.splice(newIndex, 0, item);
+            await saveUserData();
+            loadTodos(todos);
+        }
     });
-  }
+}
 }
 
 async function addTodo() {
@@ -1746,6 +1751,7 @@ window.onload = async () => {
   if (sessionStorage.getItem('loggedIn') === 'true') {
     userId = sessionStorage.getItem('userId'); // Restore userId
     if (userId) {
+      document.getElementById('logoutBtn').classList.remove('d-none'); // Show logout button
       await loadUserData();
       await loadWeeklyGoals();
     }

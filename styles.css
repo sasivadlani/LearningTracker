@@ -51,21 +51,51 @@ body {
 }
 
 #logoutBtn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-    cursor: pointer;
+    position: static;
+    z-index: auto;
+}
+
+#header {
+    background-color: #f8f9fa;
+    padding: 10px 15px;  /* Reduced top/bottom padding */
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: sticky;  /* Make header sticky */
+    top: 0;  /* Stick to top */
+    z-index: 1000;  /* Ensure header stays above other content */
+    width: 100%;
+    margin-bottom: 10px;  /* Reduced margin */
+}
+
+#header .flex-grow-1 {
+    flex: 1;
+}
+
+#header .flex-grow-2 {
+    flex: 2;
+    text-align: center;
+}
+
+#header h1 {
+    margin: 0;
+    white-space: nowrap;
 }
 
 .container-fluid {
-    display: flex;
+    display: block;  /* Change from flex to block */
     padding: 10px;
+    flex-wrap: wrap;  /* Allow wrapping for better responsiveness */
+}
+
+.container-fluid > #header {
+    width: 100%;
+    flex-basis: 100%;
 }
 
 #mainContent {
     display: none;
     flex-basis: 80%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .flex-grow-1 {
@@ -84,12 +114,11 @@ body {
 }
 
 #passwordPrompt {
-    margin-top: 1rem;
+    margin-top: 0;  /* Remove top margin since header is now above */
     padding: 10px;
 }
 
 #clockInOut {
-    margin-top: 1rem;
     margin-bottom: 1rem;
 }
 
@@ -359,7 +388,7 @@ table td.actions .btn i {
     height: auto;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 165px !important;    
+    margin-top: 0;
     overflow: hidden;
 }
 
@@ -432,282 +461,6 @@ table td.actions .btn i {
     color: #dc3545;
     font-size: 0.875rem;
     margin-top: 0.25rem;
-}
-
-/* Update media query for better responsiveness */
-@media (max-width: 480px) {
-
-    #currentSession,
-    #sessionList {
-        padding: 10px;
-        margin-top: 10px;
-    }
-
-    #timer {
-        font-size: 18px;
-    }
-
-    #currentTopic {
-        font-size: 16px;
-        padding-right: 10px;
-    }
-
-    .edit-input {
-        width: 100%;
-        padding: 8px;
-    }
-
-    #todoList {
-        padding: 10px;
-        margin-top: 10px;
-        flex-basis: 100%;
-        width: 100%;
-    }
-
-    #todoList ul li {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    #todoList ul li input[type="text"] {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-
-    #todoList ul li button {
-        margin-left: 0;
-        height: 1px;
-        width: 100%;
-    }
-
-
-    .timer-type-buttons {
-        flex-wrap: wrap;
-    }
-}
-
-@media (max-width: 576px) {
-    #passwordPrompt {
-        margin-top: 1rem;
-        padding: 10px;
-    }
-
-    .table th,
-    .table td {
-        padding: 5px;
-        font-size: 0.875rem;
-    }
-
-    .edit-input {
-        font-size: 14px;
-        padding: 2px;
-    }
-
-    .btn {
-        padding: 4px 8px;
-        font-size: 0.875rem;
-    }
-
-    #logoutBtn {
-        top: 10px;
-        right: 10px;
-    }
-
-    #todoList {
-        order: 3;
-    }
-    #sessionList {
-        order: 2;
-    }
-    #mainContent {
-        order: 1;
-    }
-
-    .container-fluid {
-        flex-direction: column;
-    }
-
-
-    #weeklyStats {
-        margin: 10px auto;
-    }
-
-    #categoryChart {
-        height: 200px !important;
-    }
-
-    #weeklyGoalsSection {
-        padding: 10px;
-    }
-    
-    .goal-item {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .goal-actions {
-        margin-top: 5px;
-    }
-
-    .btn-group-vertical {
-        justify-content: center;
-        align-items: center;
-    }
-}
-
-@media (max-width: 768px) {
-    .timer-display span {
-        font-size: 1.25rem;
-        min-width: 40px;
-    }
-
-    .timer-buttons button {
-        width: 40px;
-        height: 40px;
-    }
-
-    .timer-buttons button i {
-        font-size: 20px;
-    }
-
-    #clockInOut {
-        flex-direction: column;
-    }
-
-    #clockInOut .form-group {
-        margin-bottom: 10px;
-    }
-
-    #clockInOut .d-flex {
-        flex-direction: row;
-        justify-content: space-between;
-    }
-
-    #clockInBtn,
-    #clockOutBtn {
-        width: 48%;
-    }
-
-    .collapsible-content table {
-        display: block;
-        overflow-x: auto;
-    }
-
-    #localTime {
-        font-size: 24px;
-    }
-
-    #timer {
-        font-size: 1.25rem;
-    }
-
-    table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-
-    #currentSession,
-    #sessionList {
-        padding: 8px;
-        margin-top: 8px;
-    }
-
-    #currentTopic {
-        font-size: 1rem;
-        padding-right: 10px;
-    }
-
-    .edit-input {
-        width: 100%;
-        padding: 10px;
-    }
-
-    #todoList {
-        padding: 8px;
-        margin-top: 8px;
-        flex-basis: 100%;
-    }
-
-    #todoList ul li {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    #todoList ul li input[type="text"] {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-
-    #todoList ul li button {
-        margin-left: 0;
-        width: 100%;
-        height: 1px;
-    }
-
-    #weeklyStats {
-        margin: 15px auto;
-    }
-
-    #categoryChart {
-        height: 250px !important;
-    }
-
-    .sticky-note {
-        width: calc(50% - 10px);
-        min-width: auto;
-    }
-}
-
-@media (max-width: 992px) {
-    #weeklyStats {
-        margin-top: 10px;
-        order: 4;
-        width: 100%;
-        max-width: 400px;
-    }
-    
-    #categoryChart {
-        width: 100% !important;
-        height: 250px !important;
-    }
-
-    .container-fluid {
-        flex-direction: column;
-    }
-
-    #mainContent {
-        flex-basis: 100%;
-        order: 1;
-    }
-
-    #todoList {
-        margin-top: 10px;
-        order: 2;
-        padding: 8px;
-        width: 100%;
-    }
-
-    .flex-grow-1 {
-        flex-basis: 100%;
-    }
-
-    #RightContent {
-        display: none;
-    }
-
-    #weeklyStats {
-        margin: 20px auto;
-        order: 4;
-        width: 100%;
-        max-width: 100%;
-    }
-    
-    #categoryChart {
-        width: 100% !important;
-        height: 300px !important;
-        margin: 0 auto;
-    }
 }
 
 /* Productivity Dashboard Styles */
@@ -962,8 +715,7 @@ table td.breakTime .edit-input {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     border-radius: 5px;
     margin-bottom: 15px;
-    margin-top: 165px;
-
+    margin-top: 0;
 }
 
 .sticky-note {
@@ -996,15 +748,180 @@ table td.breakTime .edit-input {
     font-style: italic;
 }
 
-@media (max-width: 768px) {
-    .sticky-note {
-        width: calc(50% - 10px);
-        min-width: auto;
+.content-wrapper {
+    width: 100%;
+    margin-top: 0;  /* Remove top margin */
+}
+
+.container-fluid .content-wrapper {
+    display: flex;
+}
+
+/* Responsive Styles */
+@media screen and (max-width: 992px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    .flex-grow-1 {
+        flex-basis: auto;
+    }
+
+    #RightContent {
+        flex-basis: auto;
+        margin-top: 20px;
+    }
+
+    #stickyNotes, #todoList {
+        max-width: none;
+    }
+
+    .sticky-note .note-text {
+        max-width: none;
+    }
+
+    #analytics, #weeklyStats {
+        width: 100%;
+    }
+
+    #categoryChart {
+        width: 100% !important;
+        height: 300px !important;
+        align-items: center;
+    }
+
+    #dailyStudyChart {
+        width: 100% !important;
+        overflow-x: auto;
+    }
+
+    /* Center analytics charts */
+    #categoryChart, #dailyStudyChart {
+        margin: 0 auto;
+    }
+    
+    #categoryChart > div, #dailyStudyChart > div {
+        margin: 0 auto;
+    }
+
+    #analytics, #weeklyStats {
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Ensure charts are visible and centered */
+    #weeklyStats, #analytics {
+        display: block;
+        width: 100%;
+        max-width: 600px;
     }
 }
 
-@media (max-width: 480px) {
-    .sticky-note {
+@media screen and (max-width: 768px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    table th.topic,
+    table td.topic-cell,
+    table th.comment,
+    table td.comment-cell {
+        max-width: 200px;
+    }
+
+    .collapsible {
+        font-size: 0.9rem;
+    }
+
+    .date-collapsible {
+        margin-left: 10px;
+        width: calc(100% - 10px);
+    }
+
+    .goal-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .goal-actions {
+        margin-top: 10px;
+        justify-content: flex-end;
+    }
+
+    #header h1 {
+        font-size: 1.5rem;
+    }
+
+    #localTime {
+        font-size: 1.5rem;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    #clockInOut .d-flex {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    #clockInBtn, #clockOutBtn {
         width: 100%;
+    }
+
+    table th.topic,
+    table td.topic-cell,
+    table th.comment,
+    table td.comment-cell {
+        max-width: 150px;
+    }
+
+    .goal-item {
+        padding: 15px;
+    }
+
+    #productivityDashboard .progress {
+        min-width: 100px;
+    }
+
+    #header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    #header .flex-grow-1 {
+        text-align: center;
+    }
+
+    #logoutBtn {
+        width: 100%;
+    }
+
+    .keyboard-shortcut {
+        display: none;
+    }
+}
+
+/* Add smooth scrolling for mobile devices */
+@media (hover: none) {
+    table {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .collapsible-content {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    #todoItems li {
+        touch-action: pan-y;
+    }
+    
+    #todoItems li.sortable-chosen {
+        background-color: #e9ecef;
+        opacity: 0.8;
     }
 }
