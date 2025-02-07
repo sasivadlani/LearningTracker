@@ -783,49 +783,69 @@ function loadTodos(todoList) {
 
   todos.forEach((todo, todoIndex) => {
     const li = document.createElement('li');
-    li.setAttribute('data-full-text', todo.text);
     li.setAttribute('data-id', todoIndex);
     const status = todo.status || 'unchecked';
-    li.className = `list-group-item d-flex justify-content-between align-items-center ${status}`;
+    li.className = `list-group-item ${status}`;
     li.innerHTML = `
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" 
-                    ${status === 'checked' ? 'checked' : ''} 
-                    ${status === 'intermediate' ? "indeterminate='true'" : ''}
-                    onclick="toggleTodoCheck(${todoIndex})">
-                <input type="text" class="form-control-plaintext" value="${todo.text}" disabled>
-            </div>
-            <button class="btn btn-danger btn-sm" onclick="deleteTodo(${todoIndex})">x</button>
-        `;
-    domElements.todoItems.appendChild(li);
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" 
+                ${status === 'checked' ? 'checked' : ''} 
+                ${status === 'intermediate' ? "indeterminate='true'" : ''}>
+            <span class="form-control-plaintext">${todo.text}</span>
+        </div>
+    `;
+
+    const checkbox = li.querySelector('.form-check-input');
+    const textSpan = li.querySelector('.form-control-plaintext');
+
+    // Handle checkbox click
+    checkbox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleTodoCheck(todoIndex);
+    });
+
+    // Handle text and li click for selection
+    [textSpan, li, li.querySelector('.form-check')].forEach(element => {
+        element.addEventListener('click', (e) => {
+            if (e.target !== checkbox && e.target.type !== 'checkbox') {
+                // If this item is already selected, unselect it
+                if (li.classList.contains('selected')) {
+                    li.classList.remove('selected');
+                } else {
+                    // Otherwise, remove selection from all items and select this one
+                    document.querySelectorAll('#todoItems li').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    li.classList.add('selected');
+                }
+                e.stopPropagation(); // Prevent event bubbling
+            }
+        });
+    });
 
     if (status === 'intermediate') {
-      li.querySelector('input[type="checkbox"]').indeterminate = true;
+        checkbox.indeterminate = true;
     }
+
+    domElements.todoItems.appendChild(li);
   });
 
-  // Initialize Sortable with modified options
+  // Initialize Sortable
   if (!domElements.todoItems.sortable) {
-    domElements.todoItems.sortable = new Sortable(domElements.todoItems, {
-      animation: 150,
-      ghostClass: 'sortable-ghost',
-      dragClass: 'sortable-drag',
-      filter: '.form-check-input, .btn', // Prevent dragging from checkbox and delete button
-      onEnd: async function (evt) {
-        const newIndex = evt.newIndex;
-        const oldIndex = evt.oldIndex;
-
-        // Reorder the todos array
-        const item = todos.splice(oldIndex, 1)[0];
-        todos.splice(newIndex, 0, item);
-
-        // Save the new order
-        await saveUserData();
-
-        // Refresh the display without full reload
-        loadTodos(todos);
-      },
-    });
+      domElements.todoItems.sortable = new Sortable(domElements.todoItems, {
+          animation: 150,
+          ghostClass: 'sortable-ghost',
+          dragClass: 'sortable-drag',
+          filter: '.form-check-input', // Only prevent dragging from checkbox
+          onEnd: async function (evt) {
+              const newIndex = evt.newIndex;
+              const oldIndex = evt.oldIndex;
+              const item = todos.splice(oldIndex, 1)[0];
+              todos.splice(newIndex, 0, item);
+              await saveUserData();
+              loadTodos(todos);
+          },
+      });
   }
 }
 
@@ -1636,6 +1656,59 @@ function initializeEventListeners() {
       }
     });
   });
+
+  // Add keyboard event listener for delete
+  document.addEventListener('keydown', (e) => {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && document.activeElement.tagName !== 'INPUT') {
+      const selectedTodo = document.querySelector('#todoItems li.selected');
+      if (selectedTodo) {
+        const index = selectedTodo.getAttribute('data-id');
+        deleteTodo(index);
+      }
+    }
+  });
+
+  // Add keyboard arrow navigation for todos
+  document.addEventListener('keydown', (e) => {
+    if (document.activeElement.tagName === 'INPUT') return;
+
+    const selectedTodo = document.querySelector('#todoItems li.selected');
+    if (!selectedTodo) return;
+
+    const allTodos = Array.from(document.querySelectorAll('#todoItems li'));
+    const currentIndex = allTodos.indexOf(selectedTodo);
+
+    switch (e.key) {
+      case 'ArrowUp':
+        e.preventDefault();
+        if (currentIndex > 0) {
+          selectedTodo.classList.remove('selected');
+          allTodos[currentIndex - 1].classList.add('selected');
+          allTodos[currentIndex - 1].scrollIntoView({ block: 'nearest' });
+        }
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        if (currentIndex < allTodos.length - 1) {
+          selectedTodo.classList.remove('selected');
+          allTodos[currentIndex + 1].classList.add('selected');
+          allTodos[currentIndex + 1].scrollIntoView({ block: 'nearest' });
+        }
+        break;
+    }
+  });
+
+  // Add click listener to unselect todo when clicking outside
+  document.addEventListener('click', (e) => {
+    const todoList = domElements.todoList;
+    const selectedTodo = document.querySelector('#todoItems li.selected');
+    
+    // If there is a selected todo and click is outside todo list
+    if (selectedTodo && !todoList.contains(e.target)) {
+        selectedTodo.classList.remove('selected');
+    }
+  });
+
 }
 
 /**

@@ -111,78 +111,57 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-#todoList ul {
-    list-style-type: none;
-    padding: 0px;
-}
-
 #todoList ul li {
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 5px;
-    overflow: hidden;
-    cursor: move; /* Show move cursor */
-    user-select: none; /* Prevent text selection while dragging */
-    transition: background-color 0.2s ease;
-    margin-bottom: 5px;
-    position: relative; 
+    align-items: flex-start;
+    word-break: break-word;
+    white-space: normal;
+    cursor: pointer;
+    user-select: none;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
 #todoList ul li .form-check {
     flex-grow: 1;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: move;
+    align-items: flex-start;
+    padding-left: 18px;
 }
 
-#todoList ul li .form-check input[type="checkbox"] {
+#todoList ul li .form-check-input {
+    flex-shrink: 0;
+}
+
+#todoList ul li .form-control-plaintext {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    min-height: 24px;
+    line-height: 1.4;
+    cursor: pointer;
+    color: inherit;
+}
+
+#todoList ul li.selected {
+    background-color: #e9ecef;
+    border: 2px solid #0d6efd;
+    border-radius: 4px;
+    box-shadow: 0 0 4px rgba(13, 110, 253, 0.25);
+}
+
+#todoList ul li:hover {
+    background-color: #f8f9fa;
+}
+
+
+
+#todoList ul li .form-check-input {
     margin-right: 10px;
 }
 
-#todoList ul li .form-check input[type="text"] {
-    width: 100%;
-    overflow: visible;
-}
 
-#todoList ul li button {
-    margin-left: 0;
-    height: 1px;
-    width: 100%;
-}
-
-#todoItems {
-    flex-grow: 0;
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    max-width: 100%; 
-    position: relative;
-}
-
-
-#todoItems li::after {
-    content: attr(data-full-text);
-    position: absolute;
-    padding: 2px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    border-radius: 4px;
-    font-size: 12px;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    transition-delay: 1.2s;
-    word-break: break-word;
-}
-
-#todoItems li:hover::after {
-    opacity: 1;
-    visibility: visible;
-}
 
 #todoList ul li.intermediate {
     text-decoration: none;
@@ -223,8 +202,8 @@ table td.topic-cell {
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.2;
-    max-height: 2.4em; /* allows for 2 lines of text */
-    min-width: 200px; /* ensures minimum readability */
+    max-height: 2.4em;
+    min-width: 200px;
 }
 
 table td.topic-cell {
