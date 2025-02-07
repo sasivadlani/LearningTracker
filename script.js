@@ -771,101 +771,13 @@ function setOpenSections(openSections) {
 /**
  * Todo List Management Functions
  */
-function loadTodos(todoList) {
-  domElements.todoItems.innerHTML = '';
-  todos = todoList;
-
-  // Sort todos by status: intermediate -> unchecked -> checked
-  todos.sort((a, b) => {
-    const statusOrder = { intermediate: 0, unchecked: 1, checked: 2 };
-    return statusOrder[a.status || 'unchecked'] - statusOrder[b.status || 'unchecked'];
-  });
-
-  todos.forEach((todo, todoIndex) => {
-    const li = document.createElement('li');
-    li.setAttribute('data-id', todoIndex);
-    const status = todo.status || 'unchecked';
-    li.className = `list-group-item ${status}`;
-    li.innerHTML = `
-        <div class="form-check">
-            <input type="checkbox" class="form-check-input" 
-                ${status === 'checked' ? 'checked' : ''} 
-                ${status === 'intermediate' ? "indeterminate='true'" : ''}>
-            <span class="form-control-plaintext">${todo.text}</span>
-        </div>
-    `;
-
-    const checkbox = li.querySelector('.form-check-input');
-    const textSpan = li.querySelector('.form-control-plaintext');
-
-    // Handle checkbox click
-    checkbox.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleTodoCheck(todoIndex);
-    });
-
-    // Handle text and li click for selection
-    [textSpan, li, li.querySelector('.form-check')].forEach(element => {
-        element.addEventListener('click', (e) => {
-            if (e.target !== checkbox && e.target.type !== 'checkbox') {
-                // If this item is already selected, unselect it
-                if (li.classList.contains('selected')) {
-                    li.classList.remove('selected');
-                } else {
-                    // Otherwise, remove selection from all items and select this one
-                    document.querySelectorAll('#todoItems li').forEach(item => {
-                        item.classList.remove('selected');
-                    });
-                    li.classList.add('selected');
-                }
-                e.stopPropagation(); // Prevent event bubbling
-            }
-        });
-    });
-
-    if (status === 'intermediate') {
-        checkbox.indeterminate = true;
-    }
-
-    domElements.todoItems.appendChild(li);
-  });
-
-  // Initialize Sortable
-  if (!domElements.todoItems.sortable) {
-      domElements.todoItems.sortable = new Sortable(domElements.todoItems, {
-          animation: 150,
-          ghostClass: 'sortable-ghost',
-          dragClass: 'sortable-drag',
-          filter: '.form-check-input', // Only prevent dragging from checkbox
-          onEnd: async function (evt) {
-              const newIndex = evt.newIndex;
-              const oldIndex = evt.oldIndex;
-              const item = todos.splice(oldIndex, 1)[0];
-              todos.splice(newIndex, 0, item);
-              await saveUserData();
-              loadTodos(todos);
-          },
-      });
-  }
-}
-
-async function addTodo() {
-  const todo = domElements.newTodoInput.value.trim();
-  if (todo) {
-    todos.unshift({ text: todo, status: 'unchecked' });
-    await saveUserData();
-    loadTodos(todos);
-    domElements.newTodoInput.value = '';
-  }
-}
-
-window.deleteTodo = async function (index) {
+async function deleteTodo(index) {
   todos.splice(index, 1);
   await saveUserData();
   loadTodos(todos);
-};
+}
 
-window.toggleTodoCheck = function (index) {
+function toggleTodoCheck(index) {
   const currentStatus = todos[index].status || 'unchecked';
   const todo = todos[index];
 
@@ -899,7 +811,95 @@ window.toggleTodoCheck = function (index) {
 
   saveUserData();
   loadTodos(todos);
-};
+}
+
+function loadTodos(todoList) {
+  domElements.todoItems.innerHTML = '';
+  todos = todoList;
+
+  // Sort todos by status: intermediate -> unchecked -> checked
+  todos.sort((a, b) => {
+    const statusOrder = { intermediate: 0, unchecked: 1, checked: 2 };
+    return statusOrder[a.status || 'unchecked'] - statusOrder[b.status || 'unchecked'];
+  });
+
+  todos.forEach((todo, todoIndex) => {
+    const li = document.createElement('li');
+    li.setAttribute('data-id', todoIndex);
+    const status = todo.status || 'unchecked';
+    li.className = `list-group-item ${status}`;
+    li.innerHTML = `
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" 
+                ${status === 'checked' ? 'checked' : ''} 
+                ${status === 'intermediate' ? "indeterminate='true'" : ''}>
+            <span class="form-control-plaintext">${todo.text}</span>
+        </div>
+    `;
+
+    const checkbox = li.querySelector('.form-check-input');
+    const textSpan = li.querySelector('.form-control-plaintext');
+
+    // Handle checkbox click
+    checkbox.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleTodoCheck(todoIndex);
+    });
+
+    // Handle text and li click for selection
+    [textSpan, li, li.querySelector('.form-check')].forEach((element) => {
+      element.addEventListener('click', (e) => {
+        if (e.target !== checkbox && e.target.type !== 'checkbox') {
+          // If this item is already selected, unselect it
+          if (li.classList.contains('selected')) {
+            li.classList.remove('selected');
+          } else {
+            // Otherwise, remove selection from all items and select this one
+            document.querySelectorAll('#todoItems li').forEach((item) => {
+              item.classList.remove('selected');
+            });
+            li.classList.add('selected');
+          }
+          e.stopPropagation(); // Prevent event bubbling
+        }
+      });
+    });
+
+    if (status === 'intermediate') {
+      checkbox.indeterminate = true;
+    }
+
+    domElements.todoItems.appendChild(li);
+  });
+
+  // Initialize Sortable
+  if (!domElements.todoItems.sortable) {
+    domElements.todoItems.sortable = new Sortable(domElements.todoItems, {
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      dragClass: 'sortable-drag',
+      filter: '.form-check-input', // Only prevent dragging from checkbox
+      onEnd: async function (evt) {
+        const newIndex = evt.newIndex;
+        const oldIndex = evt.oldIndex;
+        const item = todos.splice(oldIndex, 1)[0];
+        todos.splice(newIndex, 0, item);
+        await saveUserData();
+        loadTodos(todos);
+      },
+    });
+  }
+}
+
+async function addTodo() {
+  const todo = domElements.newTodoInput.value.trim();
+  if (todo) {
+    todos.unshift({ text: todo, status: 'unchecked' });
+    await saveUserData();
+    loadTodos(todos);
+    domElements.newTodoInput.value = '';
+  }
+}
 
 /**
  * Weekly Goals Management Functions
@@ -1659,7 +1659,10 @@ function initializeEventListeners() {
 
   // Add keyboard event listener for delete
   document.addEventListener('keydown', (e) => {
-    if ((e.key === 'Delete' || e.key === 'Backspace') && document.activeElement.tagName !== 'INPUT') {
+    if (
+      (e.key === 'Delete' || e.key === 'Backspace') &&
+      document.activeElement.tagName !== 'INPUT'
+    ) {
       const selectedTodo = document.querySelector('#todoItems li.selected');
       if (selectedTodo) {
         const index = selectedTodo.getAttribute('data-id');
@@ -1702,13 +1705,12 @@ function initializeEventListeners() {
   document.addEventListener('click', (e) => {
     const todoList = domElements.todoList;
     const selectedTodo = document.querySelector('#todoItems li.selected');
-    
+
     // If there is a selected todo and click is outside todo list
     if (selectedTodo && !todoList.contains(e.target)) {
-        selectedTodo.classList.remove('selected');
+      selectedTodo.classList.remove('selected');
     }
   });
-
 }
 
 /**
