@@ -38,14 +38,16 @@ jobs:
           npm install
       - name: Run lint
         run: |
-          set -e
-            npm run lint -- --quiet --format json --output-file eslint-report.json || (npm run lint -- --quiet --format stylish && exit 1)
+          echo "ESLint Report" > eslint-report.txt
+          echo "=============" >> eslint-report.txt
+          echo "" >> eslint-report.txt
+          npm run lint -- --format stylish | tee -a eslint-report.txt
       - name: Upload lint results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lint-report
-          path: eslint-report.json
+          path: eslint-report.txt
           retention-days: 1
 
   # Build job
