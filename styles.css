@@ -102,7 +102,7 @@ body {
 }
 
 #todoList {
-    margin-top: 165px;
+    margin-top: 20px;
     background: #fff;
     padding: 10px;
     min-width: 220px;
@@ -121,13 +121,13 @@ body {
     padding: 8px;
     border-radius: 4px;
     transition: background-color 0.2s;
+    margin-bottom: 5px;
 }
 
 #todoList ul li .form-check {
     flex-grow: 1;
     display: flex;
     align-items: flex-start;
-    padding-left: 18px;
 }
 
 #todoList ul li .form-check-input {
@@ -153,15 +153,12 @@ body {
 
 #todoList ul li:hover {
     background-color: #f8f9fa;
+    transform: scale(1.01);
 }
-
-
 
 #todoList ul li .form-check-input {
     margin-right: 10px;
 }
-
-
 
 #todoList ul li.intermediate {
     text-decoration: none;
@@ -656,6 +653,11 @@ table td.actions .btn i {
     #categoryChart {
         height: 250px !important;
     }
+
+    .sticky-note {
+        width: calc(50% - 10px);
+        min-width: auto;
+    }
 }
 
 @media (max-width: 992px) {
@@ -953,4 +955,57 @@ table td.breakTime .edit-input {
     width: 50px;
     text-align: center;
     padding: 2px;
+}
+
+/* Sticky Notes Styles */
+#stickyNotes {
+    background: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    margin-top: 165px;
+
+}
+
+.sticky-note {
+    background: #fff9c4;
+    padding: 15px;
+    border-radius: 3px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    /* width: 100%; */
+    min-height: 100px;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+.sticky-note:hover {
+    transform: scale(1.01);
+}
+
+.sticky-note .note-text {
+    max-width: 170px;
+    width: 100%;
+    min-height: 80px;
+    outline: none;
+    border: none;
+    background: transparent;
+}
+
+.sticky-note .note-text[placeholder]:empty:before {
+    content: attr(placeholder);
+    color: #999;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .sticky-note {
+        width: calc(50% - 10px);
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .sticky-note {
+        width: 100%;
+    }
 }

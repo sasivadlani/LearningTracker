@@ -47,6 +47,7 @@ let userId = null;
 let interval = null;
 let weeklyGoals = [];
 let weeklyTarget = 56; // Default target
+let stickyNote = ''; // Change this line
 
 /**
  * Authentication Functions
@@ -115,6 +116,7 @@ async function handleLogout() {
   document.getElementById('weeklyStats').style.display = 'none';
   document.getElementById('analytics').style.display = 'none';
   document.getElementById('productivityDashboard').style.display = 'none';
+  document.getElementById('stickyNotes').classList.add('d-none');
   domElements.passwordInput.value = '';
   domElements.topicInput.value = '';
   domElements.todoList.classList.add('d-none');
@@ -187,9 +189,10 @@ async function loadUserData() {
     if (data.Item) {
       sessions = data.Item.sessions || [];
       todos = data.Item.todos || [];
+      stickyNote = data.Item.stickyNote || '';
       currentSession = data.Item.currentSession || {};
-      weeklyGoals = data.Item.weeklyGoals || []; // Add this line to load weekly goals
-      weeklyTarget = data.Item.weeklyTarget || 56; // Add this line
+      weeklyGoals = data.Item.weeklyGoals || [];
+      weeklyTarget = data.Item.weeklyTarget || 56;
 
       if (currentSession.started) {
         domElements.clockInBtn.disabled = true;
@@ -207,9 +210,11 @@ async function loadUserData() {
       document.getElementById('productivityDashboard').style.display = 'block';
 
       loadTodos(todos);
+      loadStickyNote();
+      document.getElementById('stickyNotes').classList.remove('d-none');
       sessionStorage.setItem('loggedIn', 'true');
       sessionStorage.setItem('userId', userId);
-      addProductivityDashboard(); // Add this line before renderWeeklyGoals
+      addProductivityDashboard();
       renderWeeklyGoals();
       updateAnalytics();
     }
@@ -223,12 +228,13 @@ async function saveUserData() {
     TableName: 'LearningTracker',
     Key: { userId },
     UpdateExpression:
-      'SET sessions = :sessions, todos = :todos, currentSession = :currentSession, weeklyGoals = :weeklyGoals',
+      'SET sessions = :sessions, todos = :todos, currentSession = :currentSession, weeklyGoals = :weeklyGoals, stickyNote = :stickyNote',
     ExpressionAttributeValues: {
       ':sessions': sessions,
       ':todos': todos,
       ':currentSession': currentSession,
       ':weeklyGoals': weeklyGoals,
+      ':stickyNote': stickyNote,
     },
   };
 
@@ -1537,11 +1543,30 @@ async function saveWeeklyTarget(target) {
   }
 }
 
+// Add after loadUserData function
+async function loadStickyNote() {
+  const noteElement = document.querySelector('#stickyNote .note-text');
+  noteElement.textContent = stickyNote;
+
+  // Add input handler
+  noteElement.addEventListener('input', async () => {
+    stickyNote = noteElement.textContent;
+    await saveUserData();
+  });
+}
+
 /**
  * Event Listeners
  */
 function initializeEventListeners() {
   domElements.submitPassword.addEventListener('click', handleLogin);
+
+  domElements.userIdInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      domElements.passwordInput.focus();
+    }
+  });
 
   domElements.passwordInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -1717,6 +1742,7 @@ function initializeEventListeners() {
  * Application Initialization
  */
 window.onload = async () => {
+  domElements.passwordInput.focus();
   if (sessionStorage.getItem('loggedIn') === 'true') {
     userId = sessionStorage.getItem('userId'); // Restore userId
     if (userId) {
