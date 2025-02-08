@@ -1,4 +1,3 @@
-/* General Styles */
 body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
@@ -23,16 +22,16 @@ body {
 }
 
 #timer {
-    font-size: 1.25rem;  /* Match currentTopic size */
+    font-size: 1.25rem;  
     color: #333;
-    display: inline;  /* Change to inline */
+    display: inline;  
 }
 
 #currentTopic {
     font-size: 1.25rem;
     color: #666;
     padding-right: 10px;
-    display: inline;  /* Change from block to inline */
+    display: inline;  
 }
 
 .edit-input {
@@ -57,14 +56,14 @@ body {
 
 #header {
     background-color: #f8f9fa;
-    padding: 10px 15px;  /* Reduced top/bottom padding */
+    padding: 10px 15px;  
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    position: sticky;  /* Make header sticky */
-    top: 0;  /* Stick to top */
-    z-index: 1000;  /* Ensure header stays above other content */
+    position: sticky;  
+    top: 0;  
+    z-index: 1000;  
     width: 100%;
-    margin-bottom: 10px;  /* Reduced margin */
+    margin-bottom: 10px;  
 }
 
 #header .flex-grow-1 {
@@ -82,9 +81,9 @@ body {
 }
 
 .container-fluid {
-    display: block;  /* Change from flex to block */
+    display: block;  
     padding: 10px;
-    flex-wrap: wrap;  /* Allow wrapping for better responsiveness */
+    flex-wrap: wrap;  
 }
 
 .container-fluid > #header {
@@ -114,7 +113,7 @@ body {
 }
 
 #passwordPrompt {
-    margin-top: 0;  /* Remove top margin since header is now above */
+    margin-top: 0;  
     padding: 10px;
 }
 
@@ -277,20 +276,19 @@ table td.actions.editing {
     width: auto;
 }
 
-/* Update action buttons styling */
 table td.actions {
     width: 40px;
     white-space: nowrap;
     padding: 4px !important;
-    vertical-align: middle; /* Add this */
+    vertical-align: middle; 
 }
 
 table td.actions .btn-group-vertical {
     display: flex;
     flex-direction: row;
     gap: 4px;
-    justify-content: center; /* Add this */
-    align-items: center; /* Add this */
+    justify-content: center; 
+    align-items: center; 
 }
 
 table td.actions .btn {
@@ -307,7 +305,6 @@ table td.actions .btn i {
     font-size: 1rem;
 }
 
-/* Collapsible Styles */
 .collapsible {
     cursor: pointer;
     padding: 8px;
@@ -370,7 +367,6 @@ table td.actions .btn i {
     width: calc(100% - 20px);
 }
 
-/* Add sticky header for tables */
 .table thead th {
     position: sticky;
     top: 0;
@@ -378,7 +374,6 @@ table td.actions .btn i {
     z-index: 1;
 }
 
-/* Weekly Stats Styles */
 #weeklyStats {
     display: none;
     padding: 10px;
@@ -394,7 +389,6 @@ table td.actions .btn i {
 
 #analytics {
     display: none;
-    /* margin: 10px auto; */
     padding: 10px;
     border-radius: 5px;
     width: 220px;
@@ -451,7 +445,6 @@ table td.actions .btn i {
     background-color: rgba(255, 255, 255, 0.7);
 }
 
-/* Add error state styles */
 .input-error {
     border-color: #dc3545;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
@@ -463,7 +456,6 @@ table td.actions .btn i {
     margin-top: 0.25rem;
 }
 
-/* Productivity Dashboard Styles */
 #productivityDashboard {
     display: none;
     margin-top: 20px;
@@ -607,7 +599,6 @@ table td.actions .btn i {
     font-size: 0.875rem;
 }
 
-/* Add styles for the drag handle */
 .handle {
     display: none;
 }
@@ -623,7 +614,6 @@ table td.actions .btn i {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-/* Add styles for the active goal indicator */
 .goal-item.active-goal {
     background-color: #e8fff3;
     border-left: 3px solid #28a745;
@@ -709,7 +699,6 @@ table td.breakTime .edit-input {
     padding: 2px;
 }
 
-/* Sticky Notes Styles */
 #stickyNotes {
     padding: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -723,7 +712,6 @@ table td.breakTime .edit-input {
     padding: 15px;
     border-radius: 3px;
     box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-    /* width: 100%; */
     min-height: 100px;
     position: relative;
     transition: transform 0.2s ease;
@@ -750,14 +738,13 @@ table td.breakTime .edit-input {
 
 .content-wrapper {
     width: 100%;
-    margin-top: 0;  /* Remove top margin */
+    margin-top: 0;  
 }
 
 .container-fluid .content-wrapper {
     display: flex;
 }
 
-/* Responsive Styles */
 @media screen and (max-width: 992px) {
     .content-wrapper {
         flex-direction: column;
@@ -795,7 +782,6 @@ table td.breakTime .edit-input {
         overflow-x: auto;
     }
 
-    /* Center analytics charts */
     #categoryChart, #dailyStudyChart {
         margin: 0 auto;
     }
@@ -810,7 +796,6 @@ table td.breakTime .edit-input {
         margin-right: auto;
     }
 
-    /* Ensure charts are visible and centered */
     #weeklyStats, #analytics {
         display: block;
         width: 100%;
@@ -935,7 +920,6 @@ table td.breakTime .edit-input {
     }
 }
 
-/* Add smooth scrolling for mobile devices */
 @media (hover: none) {
     table {
         -webkit-overflow-scrolling: touch;

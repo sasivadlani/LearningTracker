@@ -1,39 +1,39 @@
 export function calculateProductivityScore(sessions, weeklyTarget, getWeekDateRange) {
-    const { start, end } = getWeekDateRange();
-    let totalMinutes = 0;
-    const uniqueDays = new Set();
-    let longSessions = 0;
-    let totalSessions = 0;
+  const { start, end } = getWeekDateRange();
+  let totalMinutes = 0;
+  const uniqueDays = new Set();
+  let longSessions = 0;
+  let totalSessions = 0;
 
-    const weekSessions = sessions.filter((session) => {
-        const sessionDate = new Date(session.started);
-        return sessionDate >= start && sessionDate <= end;
-    });
+  const weekSessions = sessions.filter((session) => {
+    const sessionDate = new Date(session.started);
+    return sessionDate >= start && sessionDate <= end;
+  });
 
-    weekSessions.forEach((session) => {
-        const sessionDate = new Date(session.started).toLocaleDateString();
-        uniqueDays.add(sessionDate);
+  weekSessions.forEach((session) => {
+    const sessionDate = new Date(session.started).toLocaleDateString();
+    uniqueDays.add(sessionDate);
 
-        const duration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60); // minutes
-        totalMinutes += duration;
-        totalSessions++;
+    const duration = (new Date(session.ended) - new Date(session.started)) / (1000 * 60); // minutes
+    totalMinutes += duration;
+    totalSessions++;
 
-        if (duration >= 45) {
-            longSessions++;
-        }
-    });
+    if (duration >= 45) {
+      longSessions++;
+    }
+  });
 
-    return {
-        productivity: ((totalMinutes / (((7 * weeklyTarget) / 7) * 60)) * 100).toFixed(1),
-        consistency: ((uniqueDays.size / 7) * 100).toFixed(1),
-        focus: totalSessions > 0 ? ((longSessions / totalSessions) * 100).toFixed(1) : '0.0',
-    };
+  return {
+    productivity: ((totalMinutes / (((7 * weeklyTarget) / 7) * 60)) * 100).toFixed(1),
+    consistency: ((uniqueDays.size / 7) * 100).toFixed(1),
+    focus: totalSessions > 0 ? ((longSessions / totalSessions) * 100).toFixed(1) : '0.0',
+  };
 }
 
-export function renderProductivityDashboard(dashboard, scores, weeklyTarget, onTargetClick) {
-    if (!dashboard) return;
+export function renderProductivityDashboard(dashboard, scores, weeklyTarget) {
+  if (!dashboard) return;
 
-    dashboard.innerHTML = `
+  dashboard.innerHTML = `
         <div class="card mb-4">
             <div class="card-header cursor-pointer" id="productivityHeader">
                 <h5 class="mb-0 h4 d-flex justify-content-between align-items-center">
@@ -86,14 +86,14 @@ export function renderProductivityDashboard(dashboard, scores, weeklyTarget, onT
         </div>
     `;
 
-    // Add click event listener for toggling
-    const header = dashboard.querySelector('#productivityHeader');
-    const metrics = dashboard.querySelector('#productivityMetrics');
-    const toggleIcon = header.querySelector('.toggle-icon');
+  // Add click event listener for toggling
+  const header = dashboard.querySelector('#productivityHeader');
+  const metrics = dashboard.querySelector('#productivityMetrics');
+  const toggleIcon = header.querySelector('.toggle-icon');
 
-    header.addEventListener('click', () => {
-        const isVisible = metrics.style.display === 'block';
-        metrics.style.display = isVisible ? 'none' : 'block';
-        toggleIcon.textContent = isVisible ? '▼' : '▲';
-    });
+  header.addEventListener('click', () => {
+    const isVisible = metrics.style.display === 'block';
+    metrics.style.display = isVisible ? 'none' : 'block';
+    toggleIcon.textContent = isVisible ? '▼' : '▲';
+  });
 }

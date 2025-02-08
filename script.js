@@ -1,21 +1,11 @@
-/**
- * AWS Configuration and DynamoDB Setup
- */
-// AWS Configuration
 AWS.config.update({
   region: 'us-east-1', // Replace with your DynamoDB region
   accessKeyId: 'AWS_ACCESS_KEY_ID', // Replace with your Access Key ID
   secretAccessKey: 'AWS_SECRET_ACCESS_KEY', // Replace with your Secret Access Key
 });
 
-// DynamoDB Instance
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-/**
- * DOM Element References
- * Get references to all HTML elements needed for the application
- */
-// Cache DOM elements
 const domElements = {
   passwordInput: document.getElementById('passwordInput'),
   userIdInput: document.getElementById('userIdInput'),
@@ -35,23 +25,16 @@ const domElements = {
   todoItems: document.getElementById('todoItems'),
 };
 
-/**
- * Global State Variables
- * Track current session, todos, and timer states
- */
-// Global Variables
 let currentSession = {};
 let sessions = [];
 let todos = [];
 let userId = null;
 let interval = null;
 let weeklyGoals = [];
-let weeklyTarget = 56; // Default target
-let stickyNote = ''; // Change this line
+let weeklyTarget = 56;
+let stickyNote = '';
 let todoManager;
-/**
- * Authentication Functions
- */
+
 async function handleLogin() {
   const inputUserId = domElements.userIdInput.value;
   const password = domElements.passwordInput.value;
@@ -74,8 +57,8 @@ async function handleLogin() {
     }
 
     if (data.Item.password === password) {
-      userId = inputUserId; // Set the userId after successful login
-      document.getElementById('logoutBtn').classList.remove('d-none'); // Show logout button
+      userId = inputUserId;
+      document.getElementById('logoutBtn').classList.remove('d-none');
       await loadUserData();
     } else {
       alert('Invalid Password');
@@ -101,13 +84,11 @@ async function handleLogout() {
     }
   }
 
-  // Reset UI elements
   domElements.clockInBtn.disabled = false;
   domElements.clockOutBtn.disabled = true;
   domElements.currentTopic.textContent = '';
   domElements.timer.textContent = '00:00:00';
 
-  // Reset state
   currentSession = {};
   sessions = [];
   todos = [];
@@ -123,20 +104,16 @@ async function handleLogout() {
   domElements.topicInput.value = '';
   domElements.todoList.classList.add('d-none');
 
-  // Clear all session storage
   sessionStorage.clear();
   userId = null;
 }
 
-/**
- * Time and Date Utility Functions
- */
 function formatTime(date) {
-  return new Date(date).toLocaleTimeString(); // Format as HH:MM:SS AM/PM
+  return new Date(date).toLocaleTimeString();
 }
 
 function formatDate(date) {
-  return new Date(date).toLocaleDateString(); // Format as MM/DD/YYYY
+  return new Date(date).toLocaleDateString();
 }
 
 function formatDateForDisplay(date) {
@@ -145,7 +122,7 @@ function formatDateForDisplay(date) {
 }
 
 function calculateTotalTime(milliseconds) {
-  const duration = milliseconds / 1000; // Convert to seconds
+  const duration = milliseconds / 1000;
   const hours = Math.floor(duration / 3600);
   const minutes = Math.floor((duration % 3600) / 60);
   const seconds = Math.floor(duration % 60);
@@ -172,9 +149,6 @@ function getWeekDateRange() {
   return { start: monday, end: sunday };
 }
 
-/**
- * Data Management Functions
- */
 async function loadUserData() {
   if (!userId) {
     console.error('No user ID available');
@@ -211,31 +185,35 @@ async function loadUserData() {
       document.getElementById('analytics').style.display = 'block';
       document.getElementById('productivityDashboard').style.display = 'block';
 
-      import('./todoList.js').then(module => {
-        todoManager = module.initializeTodoList(
+      import('./todoList.js')
+        .then((module) => {
+          todoManager = module.initializeTodoList(
             {
-                todoItems: domElements.todoItems,
-                newTodoInput: domElements.newTodoInput
+              todoItems: domElements.todoItems,
+              newTodoInput: domElements.newTodoInput,
             },
             todos,
             async (updatedTodos) => {
-                todos = updatedTodos;
-                await saveUserData();
+              todos = updatedTodos;
+              await saveUserData();
             }
-        );
-        todoManager.loadTodos(todos);
-      }).catch(err => {
-        console.error('Error loading todo list module:', err);
-      });
+          );
+          todoManager.loadTodos(todos);
+        })
+        .catch((err) => {
+          console.error('Error loading todo list module:', err);
+        });
 
-      import('./quickNote.js').then(module => {
-        module.loadStickyNote('stickyNote', stickyNote, async (newNote) => {
+      import('./quickNote.js')
+        .then((module) => {
+          module.loadStickyNote('stickyNote', stickyNote, async (newNote) => {
             stickyNote = newNote;
             await saveUserData();
+          });
+        })
+        .catch((err) => {
+          console.error('Error loading quick note module:', err);
         });
-      }).catch(err => {
-        console.error('Error loading quick note module:', err);
-      });
       document.getElementById('stickyNotes').classList.remove('d-none');
       sessionStorage.setItem('loggedIn', 'true');
       sessionStorage.setItem('userId', userId);
@@ -271,11 +249,8 @@ async function saveUserData() {
   }
 }
 
-/**
- * Session Management Functions
- */
 function startTimer(startedTime) {
-  let elapsed = 0; // Define elapsed variable
+  let elapsed = 0;
   interval = setInterval(() => {
     elapsed = Math.floor((Date.now() - startedTime) / 1000);
     const hours = Math.floor(elapsed / 3600);
@@ -348,9 +323,9 @@ async function handleClockIn() {
   domElements.clockInBtn.disabled = true;
   domElements.clockOutBtn.disabled = false;
   domElements.currentTopic.textContent = topic + ': ';
-  domElements.topicInput.value = ''; // Clear the topic input
+  domElements.topicInput.value = '';
   startTimer(currentSession.started);
-  renderWeeklyGoals(); // Add this line at the end
+  renderWeeklyGoals();
 }
 
 async function handleClockOut() {
@@ -358,25 +333,21 @@ async function handleClockOut() {
 
   currentSession.ended = Date.now();
 
-  // Calculate total session time in minutes
   const totalSessionMinutes =
     (currentSession.ended - new Date(currentSession.started).getTime()) / (1000 * 60);
 
-  // Prompt for break time
   let breakMinutes;
   let isValidBreakTime = false;
 
   while (!isValidBreakTime) {
     breakMinutes = prompt('Enter break time in minutes (if any):', '0');
 
-    // Handle cancel or empty input
     if (breakMinutes === null) {
-      return; // Exit clock out if user cancels
+      return;
     }
 
     breakMinutes = parseInt(breakMinutes);
 
-    // Validate break time
     if (isNaN(breakMinutes) || breakMinutes < 0) {
       alert('Please enter a valid number of minutes (0 or positive number)');
     } else if (breakMinutes > totalSessionMinutes) {
@@ -392,7 +363,6 @@ async function handleClockOut() {
 
   currentSession.breakTime = breakMinutes;
 
-  // Calculate total time excluding break
   const totalMilliseconds = currentSession.ended - new Date(currentSession.started).getTime();
   const breakMilliseconds = currentSession.breakTime * 60 * 1000;
   const netMilliseconds = totalMilliseconds - breakMilliseconds;
@@ -424,10 +394,8 @@ function loadSessions(sessions) {
   const sessionsContainer = document.getElementById('sessionsContainer');
   sessionsContainer.innerHTML = '';
 
-  // Get today's date for comparison
   const today = new Date().toLocaleDateString();
 
-  // Group sessions by month and date
   const sessionsByMonth = sessions.reduce((acc, session) => {
     const date = new Date(session.date);
     const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
@@ -446,7 +414,6 @@ function loadSessions(sessions) {
     return acc;
   }, {});
 
-  // Sort months from newest to oldest
   const sortedMonths = Object.keys(sessionsByMonth).sort((a, b) => b.localeCompare(a));
 
   sortedMonths.forEach((monthKey) => {
@@ -456,7 +423,6 @@ function loadSessions(sessions) {
       new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }) ===
       monthData.monthName;
 
-    // Create month-level collapsible
     monthSection.innerHTML = `
             <button class="collapsible month-collapsible ${isCurrentMonth ? 'active' : ''}">
                 ${monthData.monthName}
@@ -537,7 +503,6 @@ function loadSessions(sessions) {
     sessionsContainer.appendChild(monthSection);
   });
 
-  // Add collapsible functionality for both month and date levels
   document.querySelectorAll('.month-collapsible, .date-collapsible').forEach((button) => {
     button.addEventListener('click', function (e) {
       e.stopPropagation();
@@ -547,12 +512,10 @@ function loadSessions(sessions) {
     });
   });
 
-  // Add Edit functionality
   document.querySelectorAll('.edit-btn').forEach((btn) => {
     btn.addEventListener('click', handleEdit);
   });
 
-  // Add these new functions after the loadSessions function
   function handleEdit(e) {
     e.stopPropagation();
     const button = e.target.closest('.edit-btn');
@@ -587,7 +550,6 @@ function loadSessions(sessions) {
     }
   }
 
-  // Update Save functionality
   document.querySelectorAll('.save-btn').forEach((btn) => {
     btn.addEventListener('click', handleSave);
   });
@@ -603,7 +565,6 @@ function loadSessions(sessions) {
     const sessionIndex = button.dataset.sessionIndex;
     if (!sessionIndex) return;
 
-    // Get updated values
     const updatedTopic = row.cells[0].querySelector('.edit-input').value.trim();
     const updatedStarted = row.cells[1].querySelector('.edit-input').value.trim();
     const updatedEnded = row.cells[2].querySelector('.edit-input').value.trim();
@@ -632,10 +593,8 @@ function loadSessions(sessions) {
         endedTime += 24 * 60 * 60 * 1000;
       }
 
-      // Calculate total session time in minutes
       const totalSessionMinutes = (endedTime - startedTime) / (1000 * 60);
 
-      // Validate break time
       if (updatedBreakTime < 0) {
         alert('Break time cannot be negative');
         return;
@@ -656,7 +615,6 @@ function loadSessions(sessions) {
 
       const newTotalTime = calculateTotalTime(netMilliseconds);
 
-      // Update session
       sessions[sessionIndex] = {
         ...sessions[sessionIndex],
         topic: updatedTopic,
@@ -680,7 +638,6 @@ function loadSessions(sessions) {
     }
   }
 
-  // Update Cancel functionality
   document.querySelectorAll('.cancel-btn').forEach((btn) => {
     btn.addEventListener('click', handleCancel);
   });
@@ -693,7 +650,6 @@ function loadSessions(sessions) {
     renderWeeklyGoals();
   }
 
-  // Replace the delete button event listener section in loadSessions function
   document.querySelectorAll('.delete-btn').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -709,29 +665,22 @@ function loadSessions(sessions) {
       const confirmDelete = confirm(`Are you sure you want to delete "${session.topic}"?`);
       if (!confirmDelete) return;
 
-      // Remove the session from the array
       sessions.splice(index, 1);
 
       try {
-        // Save to DynamoDB
         await saveUserData();
 
-        // Remember which sections were open
         const openSections = getOpenSections();
 
-        // Reload the sessions display
         loadSessions(sessions);
 
-        // Restore open sections
         setOpenSections(openSections);
 
-        // Update goals and analytics
         renderWeeklyGoals();
         updateAnalytics();
       } catch (err) {
         console.error('Error deleting session:', err);
         alert('Failed to delete session. Please try again.');
-        // Restore the deleted session if save fails
         sessions.splice(index, 0, session);
       }
     });
@@ -759,9 +708,6 @@ function setOpenSections(openSections) {
   });
 }
 
-/**
- * Weekly Goals Management Functions
- */
 async function loadWeeklyGoals() {
   if (!userId) return;
 
@@ -816,16 +762,13 @@ function renderWeeklyGoals() {
         ${completedGoals.length ? '<div id="completedGoals" class="mt-3"><h5 class="text-success">Completed Goals</h5></div>' : ''}
     `;
 
-  // Render active goal separately if exists
   if (activeGoal) {
     const currentSessionGoalContainer = document.getElementById('currentSessionGoal');
     renderGoalsList([activeGoal], currentSessionGoalContainer, true);
 
-    // Filter out active goal from other sections
     const remainingCurrentWeekGoals = currentWeekGoals.filter((goal) => goal !== activeGoal);
     const remainingBacklogGoals = backlogGoals.filter((goal) => goal !== activeGoal);
 
-    // Render remaining goals
     const currentWeekContainer = document.getElementById('currentWeekGoals');
     renderGoalsList(remainingCurrentWeekGoals, currentWeekContainer);
 
@@ -834,7 +777,6 @@ function renderWeeklyGoals() {
       renderGoalsList(remainingBacklogGoals, backlogContainer);
     }
   } else {
-    // Render all non-completed goals if no active goal
     const currentWeekContainer = document.getElementById('currentWeekGoals');
     renderGoalsList(currentWeekGoals, currentWeekContainer);
 
@@ -844,7 +786,6 @@ function renderWeeklyGoals() {
     }
   }
 
-  // Render completed goals last
   if (completedGoals.length) {
     const completedContainer = document.getElementById('completedGoals');
     renderGoalsList(completedGoals, completedContainer);
@@ -857,13 +798,11 @@ function renderGoalsList(goals, container, isCurrentSession = false) {
   }
 
   goals.sort((a, b) => {
-    // Always prioritize active goals first, regardless of completion status
     const aIsActive = isGoalActive(a.category);
     const bIsActive = isGoalActive(b.category);
     if (aIsActive && !bIsActive) return -1;
     if (!aIsActive && bIsActive) return 1;
 
-    // For non-active goals, sort by week and progress
     const weekDiff = new Date(b.weekStart) - new Date(a.weekStart);
     if (weekDiff !== 0) return weekDiff;
 
@@ -935,11 +874,10 @@ async function addWeeklyGoal() {
     return;
   }
 
-  // Get the Monday of current week
   const now = new Date();
   const monday = new Date(now);
   const currentDay = monday.getDay();
-  const diff = currentDay === 0 ? -6 : 1 - currentDay; // Adjust for Sunday
+  const diff = currentDay === 0 ? -6 : 1 - currentDay;
   monday.setDate(monday.getDate() + diff);
   monday.setHours(0, 0, 0, 0);
 
@@ -950,7 +888,6 @@ async function addWeeklyGoal() {
     weekNumber: getWeekNumber(monday),
   };
 
-  // Check if goal for this category already exists in the current week
   const existingGoal = weeklyGoals.find((g) => {
     const goalWeekStart = new Date(g.weekStart);
     return (
@@ -973,15 +910,15 @@ async function addWeeklyGoal() {
   }
 
   try {
-    await saveUserData(); // Use the existing saveUserData function that includes weeklyGoals
+    await saveUserData();
     categoryInput.value = '';
     hoursInput.value = '';
     renderWeeklyGoals();
-    updateAnalytics(); // Update charts and goals display
+    updateAnalytics();
   } catch (err) {
     console.error('Error saving weekly goal:', err);
     if (!existingGoal) {
-      weeklyGoals.pop(); // Remove the goal if save failed
+      weeklyGoals.pop();
     }
     alert('Failed to save goal. Please try again.');
   }
@@ -1004,19 +941,15 @@ function calculateGoalProgress(category, weekStart = null) {
   const now = new Date();
 
   if (weekStart) {
-    // For specific week's goal
     start = new Date(weekStart);
-    // For backlog goals, count all sessions up to now
     if (start < getWeekDateRange().start) {
       end = now;
     } else {
-      // For current/future week goals, only count that week
       end = new Date(start);
       end.setDate(start.getDate() + 6);
       end.setHours(23, 59, 59, 999);
     }
   } else {
-    // For current week
     const weekRange = getWeekDateRange();
     start = weekRange.start;
     end = weekRange.end;
@@ -1062,7 +995,7 @@ function getBacklogGoals() {
       const goalWeekStart = new Date(goal.weekStart);
       return goalWeekStart < currentWeekStart;
     })
-    .sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart)); // Sort by most recent first
+    .sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart));
 }
 
 function isGoalActive(category) {
@@ -1076,7 +1009,6 @@ window.editGoal = async function (index) {
   document.getElementById('editGoalCategory').value = goal.category;
   document.getElementById('editGoalHours').value = goal.hours;
 
-  // Fix date display
   const date = new Date(goal.weekStart);
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   document.getElementById('editGoalWeekStart').value = localDate.toISOString().split('T')[0];
@@ -1090,10 +1022,8 @@ async function saveEditedGoal() {
   const category = document.getElementById('editGoalCategory').value.trim();
   const hours = parseFloat(document.getElementById('editGoalHours').value);
 
-  // Fix date handling
   const selectedDate = document.getElementById('editGoalWeekStart').value;
   const weekStart = new Date(selectedDate);
-  // Add timezone offset to keep the date as selected
   weekStart.setMinutes(weekStart.getMinutes() + weekStart.getTimezoneOffset());
   weekStart.setHours(0, 0, 0, 0);
 
@@ -1121,7 +1051,6 @@ async function saveEditedGoal() {
   }
 }
 
-// Add this new utility function
 function getWeekNumber(date) {
   const target = new Date(date);
   target.setHours(0, 0, 0, 0);
@@ -1130,38 +1059,39 @@ function getWeekNumber(date) {
   return 1 + Math.round(((target - weekStart) / 86400000 - 3 + ((weekStart.getDay() + 6) % 7)) / 7);
 }
 
-/**
- * Analytics and Visualization Functions
- */
 function updateAnalytics() {
-    import('./weeklySummary.js').then(module => {
-        const chartElement = document.getElementById('categoryChart');
-        module.updateCategoryChart(chartElement, sessions, getWeekDateRange);
-    }).catch(err => {
-        console.error('Error loading weekly summary module:', err);
+  import('./weeklySummary.js')
+    .then((module) => {
+      const chartElement = document.getElementById('categoryChart');
+      module.updateCategoryChart(chartElement, sessions, getWeekDateRange);
+    })
+    .catch((err) => {
+      console.error('Error loading weekly summary module:', err);
     });
-    
-    import('./dailySummary.js').then(module => {
-        const chartElement = document.getElementById('dailyStudyChart');
-        module.updateDailyStudyChart(chartElement, sessions, formatDate);
-    }).catch(err => {
-        console.error('Error loading daily summary module:', err);
+
+  import('./dailySummary.js')
+    .then((module) => {
+      const chartElement = document.getElementById('dailyStudyChart');
+      module.updateDailyStudyChart(chartElement, sessions, formatDate);
+    })
+    .catch((err) => {
+      console.error('Error loading daily summary module:', err);
     });
-    renderWeeklyGoals();
+  renderWeeklyGoals();
 }
 
-// Add after calculateDailyStudyTime()
 function addProductivityDashboard() {
-    import('./productivityMetrics.js').then(module => {
-        const dashboard = document.getElementById('productivityDashboard');
-        const scores = module.calculateProductivityScore(sessions, weeklyTarget, getWeekDateRange);
-        module.renderProductivityDashboard(dashboard, scores, weeklyTarget);
-    }).catch(err => {
-        console.error('Error loading productivity metrics module:', err);
+  import('./productivityMetrics.js')
+    .then((module) => {
+      const dashboard = document.getElementById('productivityDashboard');
+      const scores = module.calculateProductivityScore(sessions, weeklyTarget, getWeekDateRange);
+      module.renderProductivityDashboard(dashboard, scores, weeklyTarget);
+    })
+    .catch((err) => {
+      console.error('Error loading productivity metrics module:', err);
     });
 }
 
-// Add after loadUserData function
 async function saveWeeklyTarget(target) {
   try {
     await docClient
@@ -1182,9 +1112,6 @@ async function saveWeeklyTarget(target) {
   }
 }
 
-/**
- * Event Listeners
- */
 function initializeEventListeners() {
   domElements.submitPassword.addEventListener('click', handleLogin);
 
@@ -1200,7 +1127,6 @@ function initializeEventListeners() {
       domElements.submitPassword.click();
     }
   });
-
 
   domElements.topicInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -1218,12 +1144,14 @@ function initializeEventListeners() {
   domElements.clockOutBtn.addEventListener('click', handleClockOut);
 
   document.getElementById('exportDataBtn').addEventListener('click', () => {
-    import('./exportData.js').then(module => {
+    import('./exportData.js')
+      .then((module) => {
         module.exportToCSV(sessions);
-    }).catch(err => {
+      })
+      .catch((err) => {
         console.error('Error loading export module:', err);
         alert('Failed to export data. Please try again.');
-    });
+      });
   });
 
   document.getElementById('addGoalBtn').addEventListener('click', addWeeklyGoal);
@@ -1238,7 +1166,6 @@ function initializeEventListeners() {
     }
   });
 
-  // Add weekly target modal handlers
   document.getElementById('saveWeeklyTarget').addEventListener('click', async () => {
     const input = document.getElementById('weeklyTargetInput');
     const newTarget = parseFloat(input.value);
@@ -1254,7 +1181,6 @@ function initializeEventListeners() {
     document.getElementById('weeklyTargetInput').value = weeklyTarget;
   });
 
-  // Add keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.metaKey) {
       switch (e.key) {
@@ -1272,7 +1198,6 @@ function initializeEventListeners() {
 
   document.getElementById('saveEditedGoalBtn').addEventListener('click', saveEditedGoal);
 
-  // Add styles for drag and drop
   const style = document.createElement('style');
   style.textContent = `
         .sortable-ghost {
@@ -1292,7 +1217,6 @@ function initializeEventListeners() {
 
   document.getElementById('saveEditedSessionBtn').addEventListener('click', saveEditedSession);
 
-  // Add Enter key listeners for edit session modal fields
   const editSessionFields = [
     'editSessionTopic',
     'editSessionStarted',
@@ -1310,23 +1234,21 @@ function initializeEventListeners() {
     });
   });
 
-  // Initialize todo event listeners
-  import('./todoEvents.js').then(module => {
-    module.initializeTodoEvents(domElements, todoManager);
-  }).catch(err => {
-    console.error('Error loading todo events module:', err);
-  });
+  import('./todoEvents.js')
+    .then((module) => {
+      module.initializeTodoEvents(domElements, todoManager);
+    })
+    .catch((err) => {
+      console.error('Error loading todo events module:', err);
+    });
 }
 
-/**
- * Application Initialization
- */
 window.onload = async () => {
   domElements.passwordInput.focus();
   if (sessionStorage.getItem('loggedIn') === 'true') {
-    userId = sessionStorage.getItem('userId'); // Restore userId
+    userId = sessionStorage.getItem('userId');
     if (userId) {
-      document.getElementById('logoutBtn').classList.remove('d-none'); // Show logout button
+      document.getElementById('logoutBtn').classList.remove('d-none');
       await loadUserData();
       await loadWeeklyGoals();
     }
@@ -1343,7 +1265,6 @@ window.onload = async () => {
 google.charts.load('current', { packages: ['corechart'] });
 google.charts.setOnLoadCallback(updateAnalytics);
 
-// Add these new functions for modal editing
 window.editSession = function (index) {
   const session = sessions[index];
   document.getElementById('editSessionTopic').value = session.topic;
@@ -1378,19 +1299,15 @@ async function saveEditedSession() {
     return;
   }
 
-  // Create Date objects for start and end times
   const startDate = new Date(`${sessionDate} ${startTime}`);
   const endDate = new Date(`${sessionDate} ${endTime}`);
 
-  // If end time is before start time, assume it's the next day
   if (endDate < startDate) {
     endDate.setDate(endDate.getDate() + 1);
   }
 
-  // Calculate total session time in minutes
   const totalSessionMinutes = (endDate - startDate) / (1000 * 60);
 
-  // Validate break time
   if (breakTime < 0) {
     alert('Break time cannot be negative');
     return;
