@@ -235,13 +235,14 @@ async function saveUserData() {
     TableName: 'LearningTracker',
     Key: { userId },
     UpdateExpression:
-      'SET sessions = :sessions, todos = :todos, currentSession = :currentSession, weeklyGoals = :weeklyGoals, stickyNote = :stickyNote',
+      'SET sessions = :sessions, todos = :todos, currentSession = :currentSession, weeklyGoals = :weeklyGoals, stickyNote = :stickyNote, weeklyTarget = :weeklyTarget',
     ExpressionAttributeValues: {
       ':sessions': sessions,
       ':todos': todos,
       ':currentSession': currentSession,
       ':weeklyGoals': weeklyGoals,
       ':stickyNote': stickyNote,
+      ':weeklyTarget': weeklyTarget,
     },
   };
 
@@ -873,26 +874,6 @@ function addProductivityDashboard() {
     });
 }
 
-async function saveWeeklyTarget(target) {
-  try {
-    await docClient
-      .update({
-        TableName: 'LearningTracker',
-        Key: { userId },
-        UpdateExpression: 'SET weeklyTarget = :target',
-        ExpressionAttributeValues: {
-          ':target': target,
-        },
-      })
-      .promise();
-    weeklyTarget = target;
-    addProductivityDashboard();
-  } catch (err) {
-    console.error('Error saving weekly target:', err);
-    alert('Failed to save weekly target');
-  }
-}
-
 function initializeEventListeners() {
   domElements.submitPassword.addEventListener('click', handleLogin);
 
@@ -951,7 +932,11 @@ function initializeEventListeners() {
     const input = document.getElementById('weeklyTargetInput');
     const newTarget = parseFloat(input.value);
     if (newTarget > 0 && newTarget <= 168) {
-      await saveWeeklyTarget(newTarget);
+      weeklyTarget = newTarget; // Add this line to update the global variable
+      await import('./productivityMetrics.js').then((module) => {
+        module.saveWeeklyTarget(newTarget, saveUserData);
+      });
+      addProductivityDashboard();
       $('#weeklyTargetModal').modal('hide');
     } else {
       alert('Please enter a valid number of hours (1-168)');

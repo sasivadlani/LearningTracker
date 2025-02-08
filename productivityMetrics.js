@@ -97,3 +97,13 @@ export function renderProductivityDashboard(dashboard, scores, weeklyTarget) {
     toggleIcon.textContent = isVisible ? '▼' : '▲';
   });
 }
+
+export async function saveWeeklyTarget(target, saveUserData) {
+  try {
+    await saveUserData();
+  } catch (err) {
+    console.error('Error saving weekly target:', err);
+    alert('Failed to save weekly target');
+    throw err; // Propagate error to caller
+  }
+}
