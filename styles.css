@@ -688,21 +688,6 @@ table td.actions .btn i {
     margin-right: 4px;
 }
 
-/* .auto-clockout-row .alert-warning {
-    margin: 4px 0;
-    padding: 2px 8px;
-    font-size: 0.75rem;
-    background-color: #fff3cd;
-    border: 1px solid #ffeeba;
-    border-radius: 3px;
-    color: #856404;
-}
-
-.auto-clockout-row .bi-exclamation-triangle {
-    color: #856404;
-    margin-right: 4px;
-} */
-
 table th.breakTime,
 table td.breakTime {
     width: 75px;

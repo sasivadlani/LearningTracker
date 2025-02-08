@@ -742,200 +742,43 @@ async function loadWeeklyGoals() {
   }
 }
 
-function isGoalCompleted(goal) {
-  const progress = calculateGoalProgress(goal.category, goal.weekStart);
-  return progress >= goal.hours;
-}
+import * as weeklyGoalsModule from './weeklyGoals.js';
 
 function renderWeeklyGoals() {
-  const goalsContainer = document.getElementById('goalsContainer');
-  if (!goalsContainer) return;
-
-  const { start, end } = getWeekDateRange();
-  const dateRange = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-
-  const allGoals = [...weeklyGoals];
-  const activeGoal = allGoals.find((goal) => isGoalActive(goal.category));
-  const currentWeekGoals = allGoals.filter((goal) => {
-    if (!goal.weekStart || isCurrentWeek(new Date(goal.weekStart))) {
-      return !isGoalCompleted(goal) || goal === activeGoal;
-    }
-    return false;
-  });
-
-  const backlogGoals = getBacklogGoals().filter((goal) => {
-    return !isGoalCompleted(goal) || goal === activeGoal;
-  });
-  const completedGoals = allGoals.filter((goal) => isGoalCompleted(goal) && goal !== activeGoal);
-
-  goalsContainer.innerHTML = `
-        <div class="text-muted small mb-2">Week: ${dateRange}</div>
-        <div id="currentSessionGoal" style="display: ${activeGoal ? 'block' : 'none'}"></div>
-        <div id="currentWeekGoals"></div>
-        ${backlogGoals.length ? '<div id="backlogGoals" class="mt-3"><h5 class="text-danger">Backlog</h5></div>' : ''}
-        ${completedGoals.length ? '<div id="completedGoals" class="mt-3"><h5 class="text-success">Completed Goals</h5></div>' : ''}
-    `;
-
-  if (activeGoal) {
-    const currentSessionGoalContainer = document.getElementById('currentSessionGoal');
-    renderGoalsList([activeGoal], currentSessionGoalContainer, true);
-
-    const remainingCurrentWeekGoals = currentWeekGoals.filter((goal) => goal !== activeGoal);
-    const remainingBacklogGoals = backlogGoals.filter((goal) => goal !== activeGoal);
-
-    const currentWeekContainer = document.getElementById('currentWeekGoals');
-    renderGoalsList(remainingCurrentWeekGoals, currentWeekContainer);
-
-    if (remainingBacklogGoals.length) {
-      const backlogContainer = document.getElementById('backlogGoals');
-      renderGoalsList(remainingBacklogGoals, backlogContainer);
-    }
-  } else {
-    const currentWeekContainer = document.getElementById('currentWeekGoals');
-    renderGoalsList(currentWeekGoals, currentWeekContainer);
-
-    if (backlogGoals.length) {
-      const backlogContainer = document.getElementById('backlogGoals');
-      renderGoalsList(backlogGoals, backlogContainer);
-    }
-  }
-
-  if (completedGoals.length) {
-    const completedContainer = document.getElementById('completedGoals');
-    renderGoalsList(completedGoals, completedContainer);
-  }
-}
-
-function renderGoalsList(goals, container, isCurrentSession = false) {
-  if (isCurrentSession) {
-    container.innerHTML = '';
-  }
-
-  goals.sort((a, b) => {
-    const aIsActive = isGoalActive(a.category);
-    const bIsActive = isGoalActive(b.category);
-    if (aIsActive && !bIsActive) return -1;
-    if (!aIsActive && bIsActive) return 1;
-
-    const weekDiff = new Date(b.weekStart) - new Date(a.weekStart);
-    if (weekDiff !== 0) return weekDiff;
-
-    const progressA = (calculateGoalProgress(a.category, a.weekStart) / a.hours) * 100;
-    const progressB = (calculateGoalProgress(b.category, b.weekStart) / b.hours) * 100;
-    return progressB - progressA;
-  });
-
-  goals.forEach((goal) => {
-    const progress = calculateGoalProgress(goal.category, goal.weekStart);
-    const percentage = Math.min((progress / goal.hours) * 100, 100);
-    const isActive = isGoalActive(goal.category);
-
-    const goalIndex = weeklyGoals.findIndex(
-      (g) => g.category === goal.category && g.weekStart === goal.weekStart
+    const goalsContainer = document.getElementById('goalsContainer');
+    weeklyGoalsModule.renderWeeklyGoals(
+        goalsContainer,
+        weeklyGoals,
+        sessions,
+        currentSession,
+        getWeekDateRange
     );
-
-    const weekStart = new Date(goal.weekStart);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
-
-    const goalElement = document.createElement('div');
-    goalElement.className = `goal-item ${isActive ? 'active-goal' : ''}`;
-    goalElement.innerHTML = `
-                <div class="goal-info">
-                    <div>
-                        <strong>${goal.category}</strong>
-                        ${isActive ? '<span class="active-indicator"><i class="bi bi-clock-fill text-success"></i></span>' : ''}
-                        : ${progress.toFixed(1)}/${goal.hours}h
-                    </div>
-                    <div class="progress goal-progress">
-                        <div class="progress-bar ${percentage >= 100 ? 'bg-success' : percentage >= 70 ? 'bg-info' : 'bg-primary'}" 
-                             role="progressbar" 
-                             style="width: ${percentage}%" 
-                             aria-valuenow="${percentage}" 
-                             aria-valuemin="0" 
-                             aria-valuemax="100">
-                            ${percentage.toFixed(0)}%
-                        </div>
-                    </div>
-                </div>
-                <div class="goal-actions">
-                    <button class="btn btn-sm btn-outline-secondary edit-goal-btn" onclick="editGoal(${goalIndex})">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteGoal(${goalIndex})">-</button>
-                </div>
-            `;
-    container.appendChild(goalElement);
-  });
 }
 
 async function addWeeklyGoal() {
-  const categoryInput = document.getElementById('goalCategory');
-  const hoursInput = document.getElementById('goalHours');
+    const categoryInput = document.getElementById('goalCategory');
+    const hoursInput = document.getElementById('goalHours');
 
-  const category = categoryInput.value.trim();
-  const hours = parseFloat(hoursInput.value);
+    const category = categoryInput.value.trim();
+    const hours = parseFloat(hoursInput.value);
 
-  if (!category) {
-    alert('Please enter a category name');
-    categoryInput.focus();
-    return;
-  }
-
-  if (isNaN(hours) || hours <= 0) {
-    alert('Please enter a valid number of hours (greater than 0)');
-    hoursInput.focus();
-    return;
-  }
-
-  const now = new Date();
-  const monday = new Date(now);
-  const currentDay = monday.getDay();
-  const diff = currentDay === 0 ? -6 : 1 - currentDay;
-  monday.setDate(monday.getDate() + diff);
-  monday.setHours(0, 0, 0, 0);
-
-  const newGoal = {
-    category,
-    hours,
-    weekStart: monday.toISOString(),
-    weekNumber: getWeekNumber(monday),
-  };
-
-  const existingGoal = weeklyGoals.find((g) => {
-    const goalWeekStart = new Date(g.weekStart);
-    return (
-      g.category.toUpperCase() === category.toUpperCase() &&
-      goalWeekStart.getTime() === monday.getTime()
-    );
-  });
-
-  if (existingGoal) {
-    const update = confirm(
-      `A goal for ${existingGoal.category} already exists for this week. Do you want to update it?`
-    );
-    if (update) {
-      existingGoal.hours = hours;
-    } else {
-      return;
+    try {
+        const success = await weeklyGoalsModule.addWeeklyGoal(
+            category, 
+            hours, 
+            weeklyGoals, // Pass the weeklyGoals array
+            saveUserData
+        );
+        if (success) {
+            categoryInput.value = '';
+            hoursInput.value = '';
+            renderWeeklyGoals();
+            updateAnalytics();
+        }
+    } catch (err) {
+        console.error('Error saving weekly goal:', err);
+        alert(err.message || 'Failed to save goal. Please try again.');
     }
-  } else {
-    weeklyGoals.push(newGoal);
-  }
-
-  try {
-    await saveUserData();
-    categoryInput.value = '';
-    hoursInput.value = '';
-    renderWeeklyGoals();
-    updateAnalytics();
-  } catch (err) {
-    console.error('Error saving weekly goal:', err);
-    if (!existingGoal) {
-      weeklyGoals.pop();
-    }
-    alert('Failed to save goal. Please try again.');
-  }
 }
 
 window.deleteGoal = async function (index) {
@@ -949,74 +792,6 @@ window.deleteGoal = async function (index) {
     console.error('Error deleting weekly goal:', err);
   }
 };
-
-function calculateGoalProgress(category, weekStart = null) {
-  let start, end;
-  const now = new Date();
-
-  if (weekStart) {
-    start = new Date(weekStart);
-    if (start < getWeekDateRange().start) {
-      end = now;
-    } else {
-      end = new Date(start);
-      end.setDate(start.getDate() + 6);
-      end.setHours(23, 59, 59, 999);
-    }
-  } else {
-    const weekRange = getWeekDateRange();
-    start = weekRange.start;
-    end = weekRange.end;
-  }
-
-  let totalHours = 0;
-  const categoryUpper = category.toUpperCase();
-
-  sessions.forEach((session) => {
-    const sessionDate = new Date(session.started);
-    if (sessionDate >= start && sessionDate <= end) {
-      if (session.topic.toUpperCase().includes(categoryUpper)) {
-        const sessionDuration =
-          (new Date(session.ended) - new Date(session.started)) / (1000 * 60 * 60);
-        const breakHours = (session.breakTime || 0) / 60;
-        totalHours += sessionDuration - breakHours;
-      }
-    }
-  });
-
-  if (currentSession.started && currentSession.topic.toUpperCase().includes(categoryUpper)) {
-    const activeSessionHours =
-      (Date.now() - new Date(currentSession.started).getTime()) / (1000 * 60 * 60);
-    totalHours += activeSessionHours;
-  }
-
-  return totalHours;
-}
-
-function isCurrentWeek(date) {
-  const { start, end } = getWeekDateRange();
-  return date >= start && date <= end;
-}
-
-function getBacklogGoals() {
-  if (!weeklyGoals || !weeklyGoals.length) return [];
-
-  const currentWeekStart = getWeekDateRange().start;
-
-  return weeklyGoals
-    .filter((goal) => {
-      if (!goal.weekStart) return false;
-      const goalWeekStart = new Date(goal.weekStart);
-      return goalWeekStart < currentWeekStart;
-    })
-    .sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart));
-}
-
-function isGoalActive(category) {
-  if (!currentSession.started) return false;
-  const categoryUpper = category.toUpperCase();
-  return currentSession.topic.toUpperCase().includes(categoryUpper);
-}
 
 window.editGoal = async function (index) {
   const goal = weeklyGoals[index];
@@ -1051,7 +826,7 @@ async function saveEditedGoal() {
     category,
     hours,
     weekStart: weekStart.toISOString(),
-    weekNumber: getWeekNumber(weekStart),
+    weekNumber: weeklyGoalsModule.getWeekNumber(weekStart),
   };
 
   try {
@@ -1063,14 +838,6 @@ async function saveEditedGoal() {
     console.error('Error updating goal:', err);
     alert('Failed to update goal. Please try again.');
   }
-}
-
-function getWeekNumber(date) {
-  const target = new Date(date);
-  target.setHours(0, 0, 0, 0);
-  target.setDate(target.getDate() + 3 - ((target.getDay() + 6) % 7));
-  const weekStart = new Date(target.getFullYear(), 0, 4);
-  return 1 + Math.round(((target - weekStart) / 86400000 - 3 + ((weekStart.getDay() + 6) % 7)) / 7);
 }
 
 function updateAnalytics() {
