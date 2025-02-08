@@ -73,8 +73,12 @@ async function handleLogout() {
   if (currentSession.started) {
     stopTimer();
     currentSession.ended = Date.now();
-    currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
-    sessions.push({ ...currentSession });
+    currentSession.breakTime = 0;
+    const totalMilliseconds = currentSession.ended - new Date(currentSession.started).getTime();
+    currentSession.totalTime = calculateTotalTime(totalMilliseconds);
+    currentSession.logoutClockOut = true;
+    currentSession.comment = 'Clocked out due to logout';
+    sessions.unshift({ ...currentSession });
 
     try {
       currentSession = {};
@@ -269,11 +273,13 @@ async function autoClockOut() {
 
   const endTime = new Date(currentSession.started).getTime() + 6 * 60 * 60 * 1000;
   currentSession.ended = endTime;
-  currentSession.totalTime = calculateTotalTime(currentSession.started, currentSession.ended);
+  currentSession.breakTime = 0;
+  const totalMilliseconds = currentSession.ended - new Date(currentSession.started).getTime();
+  currentSession.totalTime = calculateTotalTime(totalMilliseconds);
   currentSession.autoClockOut = true;
   currentSession.comment = 'Auto clocked out after 6 hours of inactivity';
 
-  sessions.unshift(currentSession);
+  sessions.unshift({ ...currentSession });
 
   try {
     currentSession = {};
@@ -456,7 +462,7 @@ function loadSessions(sessions) {
                                       .map(
                                         (session) => `
                                         <tr data-session-index="${sessions.indexOf(session)}" 
-                                            class="${session.autoClockOut ? 'auto-clockout-row' : ''}">
+                                            class="${session.autoClockOut ? 'auto-clockout-row' : ''} ${session.logoutClockOut ? 'logout-clockout-row' : ''}">
                                             <td class="topic-cell">
                                                 ${session.topic}
                                             </td>
@@ -485,6 +491,13 @@ function loadSessions(sessions) {
                                               session.autoClockOut
                                                 ? `<div class="alert alert-warning mt-1 mb-1" role="alert">
                                                     <i class="bi bi-exclamation-triangle"></i> Auto clocked out after 6 hours
+                                                </div>`
+                                                : ''
+                                            }
+                                            ${
+                                              session.logoutClockOut
+                                                ? `<div class="alert alert-warning mt-1 mb-1" role="alert">
+                                                    <i class="bi bi-exclamation-triangle"></i> Clocked out due to logout
                                                 </div>`
                                                 : ''
                                             }
@@ -626,6 +639,7 @@ function loadSessions(sessions) {
       };
 
       delete sessions[sessionIndex].autoClockOut;
+      delete sessions[sessionIndex].logoutClockOut;
 
       await saveUserData();
       const openSections = getOpenSections();
@@ -1335,6 +1349,9 @@ async function saveEditedSession() {
     totalTime: calculateTotalTime(netMilliseconds),
     comment,
   };
+
+  delete sessions[index].autoClockOut;
+  delete sessions[index].logoutClockOut;
 
   try {
     await saveUserData();

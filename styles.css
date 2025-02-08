@@ -666,11 +666,29 @@ table td.actions .btn i {
     margin-right: 0.5rem;
 }
 
-.auto-clockout-row {
+.auto-clockout-row,
+.logout-clockout-row {
     background-color: rgba(255, 243, 205, 0.3) !important;
 }
 
-.auto-clockout-row .alert-warning {
+.auto-clockout-row .alert-warning,
+.logout-clockout-row .alert-warning {
+    margin: 4px 0;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 3px;
+    color: #856404;
+}
+
+.auto-clockout-row .bi-exclamation-triangle,
+.logout-clockout-row .bi-exclamation-triangle {
+    color: #856404;
+    margin-right: 4px;
+}
+
+/* .auto-clockout-row .alert-warning {
     margin: 4px 0;
     padding: 2px 8px;
     font-size: 0.75rem;
@@ -683,7 +701,7 @@ table td.actions .btn i {
 .auto-clockout-row .bi-exclamation-triangle {
     color: #856404;
     margin-right: 4px;
-}
+} */
 
 table th.breakTime,
 table td.breakTime {
