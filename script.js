@@ -186,7 +186,21 @@ async function loadUserData() {
         domElements.clockInBtn.disabled = true;
         domElements.clockOutBtn.disabled = false;
         domElements.currentTopic.textContent = currentSession.topic;
-        startTimer(currentSession.started);
+        
+        // Restore pause state if it exists
+        if (currentSession.isPaused) {
+          isPaused = true;
+          pauseStartTime = currentSession.pauseStartTime;
+          totalPauseTime = currentSession.totalPauseTime || 0;
+          domElements.pauseBtn.textContent = 'Resume';
+          domElements.pauseBtn.classList.remove('btn-warning');
+          domElements.pauseBtn.classList.add('btn-info');
+          domElements.timer.textContent = `Paused (Total breaks: ${totalPauseTime} min)`;
+          domElements.pauseBtn.disabled = false;
+        } else {
+          startTimer(currentSession.started);
+          domElements.pauseBtn.disabled = false;
+        }
       }
 
       loadSessions(sessions);
@@ -210,6 +224,17 @@ async function loadUserData() {
               await saveUserData();
             }
           );
+
+          if (todoManager) {
+            import('./todoEvents.js')
+              .then((module) => {
+                module.initializeTodoEvents(domElements, todoManager);
+              })
+              .catch((err) => {
+                console.error('Error loading todo events module:', err);
+              });
+          }
+
           todoManager.loadTodos(todos);
         })
         .catch((err) => {
@@ -334,6 +359,8 @@ async function handleClockIn() {
     topic,
     started: Date.now(),
     date: new Date().toLocaleDateString(),
+    isPaused: false,
+    totalPauseTime: 0
   };
 
   await saveUserData();
@@ -1023,14 +1050,6 @@ function initializeEventListeners() {
       }
     });
   });
-
-  import('./todoEvents.js')
-    .then((module) => {
-      module.initializeTodoEvents(domElements, todoManager);
-    })
-    .catch((err) => {
-      console.error('Error loading todo events module:', err);
-    });
 }
 
 window.onload = async () => {
@@ -1157,6 +1176,11 @@ function handlePause() {
     domElements.pauseBtn.classList.add('btn-info');
     stopTimer();
     domElements.timer.textContent = `Paused (Total breaks: ${totalPauseTime} min)`;
+    
+    currentSession.isPaused = true;
+    currentSession.pauseStartTime = pauseStartTime;
+    currentSession.totalPauseTime = totalPauseTime;
+    saveUserData();
   } else {
     isPaused = false;
     const pauseDuration = Math.floor((Date.now() - pauseStartTime) / (1000 * 60));
@@ -1166,5 +1190,10 @@ function handlePause() {
     domElements.pauseBtn.classList.remove('btn-info');
     domElements.pauseBtn.classList.add('btn-warning');
     startTimer(currentSession.started);
+    
+    currentSession.isPaused = false;
+    currentSession.pauseStartTime = null;
+    currentSession.totalPauseTime = totalPauseTime;
+    saveUserData();
   }
 }

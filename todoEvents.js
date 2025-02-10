@@ -1,13 +1,24 @@
 export function initializeTodoEvents(domElements, todoManager) {
-  // Todo input event listeners
+  if (!domElements || !todoManager) {
+    console.error('Required parameters are missing:', {
+      hasDomElements: !!domElements,
+      hasTodoManager: !!todoManager,
+    });
+    return;
+  }
+
+  // Add todo on input enter key
   domElements.newTodoInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && todoManager && typeof todoManager.addTodo === 'function') {
       todoManager.addTodo(domElements.newTodoInput.value);
     }
   });
 
+  // Add todo on button click
   domElements.addTodoBtn.addEventListener('click', () => {
-    todoManager.addTodo(domElements.newTodoInput.value);
+    if (todoManager && typeof todoManager.addTodo === 'function') {
+      todoManager.addTodo(domElements.newTodoInput.value);
+    }
   });
 
   // Keyboard navigation for todos
@@ -19,7 +30,7 @@ export function initializeTodoEvents(domElements, todoManager) {
       document.activeElement.tagName !== 'INPUT'
     ) {
       const selectedTodo = document.querySelector('#todoItems li.selected');
-      if (selectedTodo) {
+      if (selectedTodo && todoManager && typeof todoManager.deleteTodo === 'function') {
         const index = selectedTodo.getAttribute('data-id');
         todoManager.deleteTodo(index);
       }
