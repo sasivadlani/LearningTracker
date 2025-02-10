@@ -23,6 +23,7 @@ const domElements = {
   newTodoInput: document.getElementById('newTodo'),
   addTodoBtn: document.getElementById('addTodoBtn'),
   todoItems: document.getElementById('todoItems'),
+  pauseBtn: document.getElementById('pauseBtn'),
 };
 
 let currentSession = {};
@@ -34,6 +35,9 @@ let weeklyGoals = [];
 let weeklyTarget = 56;
 let stickyNote = '';
 let todoManager;
+let isPaused = false;
+let pauseStartTime = null;
+let totalPauseTime = 0;
 
 async function handleLogin() {
   const inputUserId = domElements.userIdInput.value;
@@ -70,6 +74,10 @@ async function handleLogin() {
 }
 
 async function handleLogout() {
+  if (isPaused) {
+    const finalPauseDuration = Math.floor((Date.now() - pauseStartTime) / (1000 * 60));
+    totalPauseTime += finalPauseDuration;
+  }
   if (currentSession.started) {
     stopTimer();
     currentSession.ended = Date.now();
@@ -262,6 +270,9 @@ function startTimer(startedTime) {
     const minutes = Math.floor((elapsed % 3600) / 60);
     const seconds = elapsed % 60;
     domElements.timer.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    if (totalPauseTime > 0) {
+      domElements.timer.textContent += ` (Breaks: ${totalPauseTime}m)`;
+    }
     if (hours >= 6) {
       autoClockOut();
     }
@@ -329,6 +340,8 @@ async function handleClockIn() {
 
   domElements.clockInBtn.disabled = true;
   domElements.clockOutBtn.disabled = false;
+  domElements.pauseBtn.disabled = false;
+  totalPauseTime = 0;
   domElements.currentTopic.textContent = topic + ': ';
   domElements.topicInput.value = '';
   startTimer(currentSession.started);
@@ -337,6 +350,12 @@ async function handleClockIn() {
 
 async function handleClockOut() {
   if (!currentSession.started) return;
+
+  if (isPaused) {
+    const finalPauseDuration = Math.floor((Date.now() - pauseStartTime) / (1000 * 60));
+    totalPauseTime += finalPauseDuration;
+    isPaused = false;
+  }
 
   currentSession.ended = Date.now();
 
@@ -347,7 +366,7 @@ async function handleClockOut() {
   let isValidBreakTime = false;
 
   while (!isValidBreakTime) {
-    breakMinutes = prompt('Enter break time in minutes (if any):', '0');
+    breakMinutes = prompt(`Enter additional break time in minutes (${totalPauseTime} minutes already counted from pauses):`, '0');
 
     if (breakMinutes === null) {
       return;
@@ -357,18 +376,18 @@ async function handleClockOut() {
 
     if (isNaN(breakMinutes) || breakMinutes < 0) {
       alert('Please enter a valid number of minutes (0 or positive number)');
-    } else if (breakMinutes > totalSessionMinutes) {
+    } else if ((breakMinutes + totalPauseTime) > totalSessionMinutes) {
       alert(
-        'Error: Break time cannot be longer than the total session time!\n' +
-          `Session duration: ${Math.floor(totalSessionMinutes)} minutes\n` +
-          `Entered break time: ${breakMinutes} minutes`
+        'Error: Total break time cannot be longer than the total session time!\n' +
+        `Session duration: ${Math.floor(totalSessionMinutes)} minutes\n` +
+        `Total break time: ${breakMinutes + totalPauseTime} minutes (${totalPauseTime} from pauses + ${breakMinutes} additional)`
       );
     } else {
       isValidBreakTime = true;
     }
   }
 
-  currentSession.breakTime = breakMinutes;
+  currentSession.breakTime = breakMinutes + totalPauseTime;
 
   const totalMilliseconds = currentSession.ended - new Date(currentSession.started).getTime();
   const breakMilliseconds = currentSession.breakTime * 60 * 1000;
@@ -379,6 +398,10 @@ async function handleClockOut() {
 
   domElements.clockInBtn.disabled = false;
   domElements.clockOutBtn.disabled = true;
+  domElements.pauseBtn.disabled = true;
+  domElements.pauseBtn.textContent = 'Pause';
+  domElements.pauseBtn.classList.remove('btn-info');
+  domElements.pauseBtn.classList.add('btn-warning');
   stopTimer();
 
   sessions.unshift(currentSession);
@@ -904,6 +927,7 @@ function initializeEventListeners() {
 
   domElements.clockInBtn.addEventListener('click', handleClockIn);
   domElements.clockOutBtn.addEventListener('click', handleClockOut);
+  domElements.pauseBtn.addEventListener('click', handlePause);
 
   document.getElementById('exportDataBtn').addEventListener('click', () => {
     import('./exportData.js')
@@ -1121,5 +1145,26 @@ async function saveEditedSession() {
   } catch (err) {
     console.error('Error updating session:', err);
     alert('Failed to update session. Please try again.');
+  }
+}
+
+function handlePause() {
+  if (!isPaused) {
+    isPaused = true;
+    pauseStartTime = Date.now();
+    domElements.pauseBtn.textContent = 'Resume';
+    domElements.pauseBtn.classList.remove('btn-warning');
+    domElements.pauseBtn.classList.add('btn-info');
+    stopTimer();
+    domElements.timer.textContent = `Paused (Total breaks: ${totalPauseTime} min)`;
+  } else {
+    isPaused = false;
+    const pauseDuration = Math.floor((Date.now() - pauseStartTime) / (1000 * 60));
+    totalPauseTime += pauseDuration;
+    pauseStartTime = null;
+    domElements.pauseBtn.textContent = 'Pause';
+    domElements.pauseBtn.classList.remove('btn-info');
+    domElements.pauseBtn.classList.add('btn-warning');
+    startTimer(currentSession.started);
   }
 }

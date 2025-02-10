@@ -1,7 +1,13 @@
 export function isGoalActive(category, currentSession) {
     if (!currentSession.started) return false;
     const categoryUpper = category.toUpperCase();
-    return currentSession.topic.toUpperCase().includes(categoryUpper);
+    const topicUpper = currentSession.topic.toUpperCase();
+    const topicWords = topicUpper.split(' ');
+    
+    return topicWords.some(word => word === categoryUpper) || 
+           topicUpper.startsWith(categoryUpper + ' ') ||
+           topicUpper.startsWith(categoryUpper + ': ') ||
+           topicUpper === categoryUpper;
 }
 
 export function getWeekNumber(date) {
