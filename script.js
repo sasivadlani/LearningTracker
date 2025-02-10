@@ -1036,10 +1036,10 @@ window.editSession = function (index) {
   document.getElementById('editSessionTopic').value = session.topic;
   document.getElementById('editSessionStarted').value = new Date(session.started)
     .toTimeString()
-    .slice(0, 5);
+    .slice(0, 8);
   document.getElementById('editSessionEnded').value = new Date(session.ended)
     .toTimeString()
-    .slice(0, 5);
+    .slice(0, 8);
   document.getElementById('editSessionBreak').value = session.breakTime || 0;
   document.getElementById('editSessionComment').value = session.comment || '';
 
@@ -1066,9 +1066,15 @@ async function saveEditedSession() {
   }
 
   const startDate = new Date(`${sessionDate} ${startTime}`);
-  const endDate = new Date(`${sessionDate} ${endTime}`);
+  let endDate = new Date(`${sessionDate} ${endTime}`);
 
-  if (endDate < startDate) {
+  if (endDate <= startDate) {
+    const confirmNextDay = confirm(
+      'The entered end time is before the start time. Do you want to consider it as the next day?'
+    );
+    if (!confirmNextDay) {
+      return;
+    }
     endDate.setDate(endDate.getDate() + 1);
   }
 
