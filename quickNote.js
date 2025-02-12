@@ -53,32 +53,45 @@ export function initializeQuickNote(noteElement, initialNote, onNoteChange) {
 
         if (e.key === 'Enter') {
             e.preventDefault();
-            
             const selection = window.getSelection();
-            const range = selection.getRangeAt(0);
-            const currentLine = range.commonAncestorContainer;
-            const currentLi = currentLine.closest ? currentLine.closest('li') : null;
-            
-            if (currentLi) {
-                // If current line is empty and it's not the last bullet point
-                if (currentLi.textContent.trim() === '' && 
-                    (!currentLi.nextElementSibling || currentLi.parentNode.children.length > 1)) {
-                    e.preventDefault();
-                    currentLi.remove();
+            if (selection.rangeCount) {
+                const range = selection.getRangeAt(0);
+                let currentLi = range.commonAncestorContainer.nodeType === 3 
+                    ? range.commonAncestorContainer.parentElement.closest('li') 
+                    : range.commonAncestorContainer.closest('li');
+                if (currentLi) {
+                    // Split the current li at the caret
+                    const newLi = document.createElement('li');
+                    // Create a range for extracting content after the caret
+                    const afterRange = range.cloneRange();
+                    afterRange.selectNodeContents(currentLi);
+                    afterRange.setStart(range.endContainer, range.endOffset);
+                    const fragment = afterRange.extractContents();
+                    if (!fragment.textContent.trim()) {
+                        newLi.innerHTML = '<br>';
+                    } else {
+                        newLi.appendChild(fragment);
+                    }
+                    currentLi.parentNode.insertBefore(newLi, currentLi.nextSibling);
+                    // Move caret to start of new bullet
+                    const newRange = document.createRange();
+                    newRange.selectNodeContents(newLi);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                    return;
                 } else {
-                    // Create new bullet at same level
+                    // Fallback for no current li
+                    const mainUl = noteElement.querySelector('ul') || noteElement;
                     const newLi = document.createElement('li');
                     newLi.innerHTML = '<br>';
-                    currentLi.parentNode.insertBefore(newLi, currentLi.nextSibling);
-                    selection.collapse(newLi, 0);
+                    mainUl.appendChild(newLi);
+                    let newRange = document.createRange();
+                    newRange.selectNodeContents(newLi);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
                 }
-            } else {
-                // Ensure we're working with the main ul
-                const mainUl = noteElement.querySelector('ul') || noteElement;
-                const newLi = document.createElement('li');
-                newLi.innerHTML = '<br>';
-                mainUl.appendChild(newLi);
-                selection.collapse(newLi, 0);
             }
         }
         
@@ -88,10 +101,6 @@ export function initializeQuickNote(noteElement, initialNote, onNoteChange) {
                 case 'b':
                     e.preventDefault();
                     document.execCommand('bold', false);
-                    break;
-                case 'i':
-                    e.preventDefault();
-                    document.execCommand('italic', false);
                     break;
                 case 'u':
                     e.preventDefault();
