@@ -731,6 +731,22 @@ table td.breakTime .edit-input {
     outline: none;
     border: none;
     background: transparent;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    padding: 5px;
+}
+
+.sticky-note .note-text ul {
+    margin: 0;
+    padding-left: 10px;
+}
+
+.sticky-note .note-text li {
+    list-style-type: disc;
+}
+
+.sticky-note .note-text p {
+    margin: 0;
 }
 
 .sticky-note .note-text[placeholder]:empty:before {
@@ -967,4 +983,9 @@ table td.breakTime .edit-input {
     background-color: rgba(255, 255, 255, 0.7);
     border: none;
     margin-bottom: 0;
+}
+
+.quick-note-link {
+    cursor: pointer;
+    font-size: 0.5em;
 }
