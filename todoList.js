@@ -24,12 +24,19 @@ export function initializeTodoList(containerElements, todos, onTodoUpdate) {
     li.setAttribute('data-id', todoIndex);
     const status = todo.status || 'unchecked';
     li.className = `list-group-item ${status}`;
+
+    // Convert URLs in the text to clickable links
+    const textWithLinks = todo.text.replace(
+      /(https?:\/\/[^\s]+)/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">$1</a>'
+    );
+
     li.innerHTML = `
             <div class="form-check">
                 <input type="checkbox" class="form-check-input" 
                     ${status === 'checked' ? 'checked' : ''} 
                     ${status === 'intermediate' ? "indeterminate='true'" : ''}>
-                <span class="form-control-plaintext">${todo.text}</span>
+                <span class="form-control-plaintext">${textWithLinks}</span>
             </div>
         `;
 
